@@ -9,7 +9,9 @@
 
    Architecture
    ------------
-   - 6 palettes x 2 modes = 12 theme states.
+   - 6 visitor-facing palettes x 2 modes = 12 theme states, plus one
+     design-preview-only palette ("bureau", CLAUDE-UI-051) that is not
+     registered in `PALETTES` and so never reaches the theme switcher.
    - Selection is driven by attributes on a scope element (usually <html>):
        data-palette = skyglass | meridian | sandbar | sunset | alpine | midnight
        data-mode    = light | dark            (resolved value; "system" is
@@ -30,16 +32,26 @@
   --ui-radius-sm: 8px;
   --ui-radius: 12px;
   --ui-radius-lg: 18px;
-  --ui-shadow-card: 0 1px 2px rgba(16, 24, 40, 0.06), 0 12px 28px rgba(16, 24, 40, 0.10);
-  --ui-shadow-panel: 0 24px 50px rgba(16, 24, 40, 0.20);
-  --ui-hero-scrim: linear-gradient(180deg, rgba(8, 12, 22, 0.12) 0%, rgba(8, 12, 22, 0.50) 100%);
+  --ui-shadow-card:
+    0 1px 2px rgba(16, 24, 40, 0.06), 0 12px 28px rgba(16, 24, 40, 0.1);
+  --ui-shadow-panel: 0 24px 50px rgba(16, 24, 40, 0.2);
+  --ui-hero-scrim: linear-gradient(
+    180deg,
+    rgba(8, 12, 22, 0.12) 0%,
+    rgba(8, 12, 22, 0.5) 100%
+  );
 }
 
 /* ---- Shared effects (DARK overrides; placed AFTER light) -------- */
 [data-mode="dark"] {
-  --ui-shadow-card: 0 1px 2px rgba(0, 0, 0, 0.40), 0 16px 40px rgba(0, 0, 0, 0.50);
-  --ui-shadow-panel: 0 28px 60px rgba(0, 0, 0, 0.60);
-  --ui-hero-scrim: linear-gradient(180deg, rgba(2, 4, 10, 0.22) 0%, rgba(2, 4, 10, 0.62) 100%);
+  --ui-shadow-card:
+    0 1px 2px rgba(0, 0, 0, 0.4), 0 16px 40px rgba(0, 0, 0, 0.5);
+  --ui-shadow-panel: 0 28px 60px rgba(0, 0, 0, 0.6);
+  --ui-hero-scrim: linear-gradient(
+    180deg,
+    rgba(2, 4, 10, 0.22) 0%,
+    rgba(2, 4, 10, 0.62) 100%
+  );
 }
 
 /* ================================================================
@@ -47,56 +59,56 @@
    ================================================================ */
 :root,
 [data-palette="skyglass"] {
-  --ui-bg: #F6F8FB;
-  --ui-surface: #FFFFFF;
-  --ui-surface-muted: #EEF2F8;
-  --ui-surface-strong: #E4EAF3;
-  --ui-text: #0E1B2E;
-  --ui-text-secondary: #38495F;
-  --ui-text-muted: #5A6B82;
-  --ui-border: rgba(15, 23, 42, 0.10);
+  --ui-bg: #f6f8fb;
+  --ui-surface: #ffffff;
+  --ui-surface-muted: #eef2f8;
+  --ui-surface-strong: #e4eaf3;
+  --ui-text: #0e1b2e;
+  --ui-text-secondary: #38495f;
+  --ui-text-muted: #5a6b82;
+  --ui-border: rgba(15, 23, 42, 0.1);
   --ui-divider: rgba(15, 23, 42, 0.07);
-  --ui-primary: #1E6AE1;
-  --ui-primary-hover: #1854C0;
-  --ui-on-primary: #FFFFFF;
-  --ui-secondary: #0EA5C9;
-  --ui-accent: #38BDF8;
-  --ui-accent-soft: #E3F3FE;
-  --ui-price: #1854C0;
-  --ui-success: #0E9F6E;
-  --ui-success-soft: #DCFCEF;
-  --ui-warning: #C77A0A;
-  --ui-warning-soft: #FDF0D6;
-  --ui-danger: #DC2626;
-  --ui-danger-soft: #FEE2E2;
-  --ui-ring: #1E6AE1;
-  --ui-hero: linear-gradient(135deg, #1E6AE1 0%, #3FA9F5 55%, #9AD7FF 100%);
+  --ui-primary: #1e6ae1;
+  --ui-primary-hover: #1854c0;
+  --ui-on-primary: #ffffff;
+  --ui-secondary: #0ea5c9;
+  --ui-accent: #38bdf8;
+  --ui-accent-soft: #e3f3fe;
+  --ui-price: #1854c0;
+  --ui-success: #0e9f6e;
+  --ui-success-soft: #dcfcef;
+  --ui-warning: #c77a0a;
+  --ui-warning-soft: #fdf0d6;
+  --ui-danger: #dc2626;
+  --ui-danger-soft: #fee2e2;
+  --ui-ring: #1e6ae1;
+  --ui-hero: linear-gradient(135deg, #1e6ae1 0%, #3fa9f5 55%, #9ad7ff 100%);
 }
 [data-palette="skyglass"][data-mode="dark"] {
-  --ui-bg: #0A1220;
-  --ui-surface: #121C2E;
-  --ui-surface-muted: #18243A;
-  --ui-surface-strong: #1F2D46;
-  --ui-text: #EAF1FB;
-  --ui-text-secondary: #ABBBD2;
-  --ui-text-muted: #7F92AE;
+  --ui-bg: #0a1220;
+  --ui-surface: #121c2e;
+  --ui-surface-muted: #18243a;
+  --ui-surface-strong: #1f2d46;
+  --ui-text: #eaf1fb;
+  --ui-text-secondary: #abbbd2;
+  --ui-text-muted: #7f92ae;
   --ui-border: rgba(231, 238, 247, 0.12);
   --ui-divider: rgba(231, 238, 247, 0.08);
-  --ui-primary: #4F92F4;
-  --ui-primary-hover: #6BA6F8;
-  --ui-on-primary: #06122A;
-  --ui-secondary: #56C7FB;
-  --ui-accent: #56C7FB;
+  --ui-primary: #4f92f4;
+  --ui-primary-hover: #6ba6f8;
+  --ui-on-primary: #06122a;
+  --ui-secondary: #56c7fb;
+  --ui-accent: #56c7fb;
   --ui-accent-soft: rgba(86, 199, 251, 0.16);
-  --ui-price: #9AD7FF;
-  --ui-success: #34D399;
+  --ui-price: #9ad7ff;
+  --ui-success: #34d399;
   --ui-success-soft: rgba(52, 211, 153, 0.16);
-  --ui-warning: #FBBF24;
+  --ui-warning: #fbbf24;
   --ui-warning-soft: rgba(251, 191, 36, 0.16);
-  --ui-danger: #F87171;
+  --ui-danger: #f87171;
   --ui-danger-soft: rgba(248, 113, 113, 0.16);
-  --ui-ring: #4F92F4;
-  --ui-hero: linear-gradient(135deg, #0A1220 0%, #15294B 45%, #1E6AE1 100%);
+  --ui-ring: #4f92f4;
+  --ui-hero: linear-gradient(135deg, #0a1220 0%, #15294b 45%, #1e6ae1 100%);
 }
 
 /* ================================================================
@@ -104,56 +116,68 @@
    ================================================================ */
 [data-palette="meridian"] {
   --ui-radius: 13px;
-  --ui-bg: #FBF8F2;
-  --ui-surface: #FFFFFF;
-  --ui-surface-muted: #F3ECDD;
-  --ui-surface-strong: #EAE0CB;
-  --ui-text: #0F2433;
-  --ui-text-secondary: #38514F;
-  --ui-text-muted: #5C6B6A;
+  --ui-bg: #fbf8f2;
+  --ui-surface: #ffffff;
+  --ui-surface-muted: #f3ecdd;
+  --ui-surface-strong: #eae0cb;
+  --ui-text: #0f2433;
+  --ui-text-secondary: #38514f;
+  --ui-text-muted: #5c6b6a;
   --ui-border: rgba(15, 36, 51, 0.12);
   --ui-divider: rgba(15, 36, 51, 0.08);
-  --ui-primary: #0F766E;
-  --ui-primary-hover: #0C5F58;
-  --ui-on-primary: #FFFFFF;
-  --ui-secondary: #14B8A6;
-  --ui-accent: #F2A516;
-  --ui-accent-soft: #FCEFD2;
-  --ui-price: #0F766E;
-  --ui-success: #0F766E;
-  --ui-success-soft: #D7F0EC;
-  --ui-warning: #C77A0A;
-  --ui-warning-soft: #FCE7C9;
-  --ui-danger: #DC2626;
-  --ui-danger-soft: #FCE3DC;
-  --ui-ring: #0F766E;
-  --ui-hero: linear-gradient(140deg, #0C3B38 0%, #0F766E 40%, #14B8A6 72%, #F2A516 100%);
+  --ui-primary: #0f766e;
+  --ui-primary-hover: #0c5f58;
+  --ui-on-primary: #ffffff;
+  --ui-secondary: #14b8a6;
+  --ui-accent: #f2a516;
+  --ui-accent-soft: #fcefd2;
+  --ui-price: #0f766e;
+  --ui-success: #0f766e;
+  --ui-success-soft: #d7f0ec;
+  --ui-warning: #c77a0a;
+  --ui-warning-soft: #fce7c9;
+  --ui-danger: #dc2626;
+  --ui-danger-soft: #fce3dc;
+  --ui-ring: #0f766e;
+  --ui-hero: linear-gradient(
+    140deg,
+    #0c3b38 0%,
+    #0f766e 40%,
+    #14b8a6 72%,
+    #f2a516 100%
+  );
 }
 [data-palette="meridian"][data-mode="dark"] {
-  --ui-bg: #08201E;
-  --ui-surface: #0E2C29;
+  --ui-bg: #08201e;
+  --ui-surface: #0e2c29;
   --ui-surface-muted: #133733;
-  --ui-surface-strong: #19433E;
-  --ui-text: #E7F4F1;
-  --ui-text-secondary: #A7C6C1;
-  --ui-text-muted: #7DA39D;
+  --ui-surface-strong: #19433e;
+  --ui-text: #e7f4f1;
+  --ui-text-secondary: #a7c6c1;
+  --ui-text-muted: #7da39d;
   --ui-border: rgba(231, 244, 241, 0.12);
   --ui-divider: rgba(231, 244, 241, 0.08);
-  --ui-primary: #1FB6A6;
-  --ui-primary-hover: #45C9BB;
-  --ui-on-primary: #04201D;
-  --ui-secondary: #5EEAD4;
-  --ui-accent: #F4B63D;
+  --ui-primary: #1fb6a6;
+  --ui-primary-hover: #45c9bb;
+  --ui-on-primary: #04201d;
+  --ui-secondary: #5eead4;
+  --ui-accent: #f4b63d;
   --ui-accent-soft: rgba(244, 182, 61, 0.16);
-  --ui-price: #5EEAD4;
-  --ui-success: #34D399;
+  --ui-price: #5eead4;
+  --ui-success: #34d399;
   --ui-success-soft: rgba(52, 211, 153, 0.16);
-  --ui-warning: #F4B63D;
+  --ui-warning: #f4b63d;
   --ui-warning-soft: rgba(244, 182, 61, 0.16);
-  --ui-danger: #F87171;
+  --ui-danger: #f87171;
   --ui-danger-soft: rgba(248, 113, 113, 0.16);
-  --ui-ring: #1FB6A6;
-  --ui-hero: linear-gradient(140deg, #08201E 0%, #0C4A45 45%, #0F766E 75%, #C8881A 100%);
+  --ui-ring: #1fb6a6;
+  --ui-hero: linear-gradient(
+    140deg,
+    #08201e 0%,
+    #0c4a45 45%,
+    #0f766e 75%,
+    #c8881a 100%
+  );
 }
 
 /* ================================================================
@@ -161,56 +185,56 @@
    ================================================================ */
 [data-palette="sandbar"] {
   --ui-radius: 10px;
-  --ui-bg: #FAF7F1;
-  --ui-surface: #FFFFFF;
-  --ui-surface-muted: #F1E9DC;
-  --ui-surface-strong: #E8DCC8;
-  --ui-text: #14110D;
-  --ui-text-secondary: #4A4338;
-  --ui-text-muted: #6B6256;
+  --ui-bg: #faf7f1;
+  --ui-surface: #ffffff;
+  --ui-surface-muted: #f1e9dc;
+  --ui-surface-strong: #e8dcc8;
+  --ui-text: #14110d;
+  --ui-text-secondary: #4a4338;
+  --ui-text-muted: #6b6256;
   --ui-border: rgba(20, 17, 13, 0.12);
   --ui-divider: rgba(20, 17, 13, 0.08);
-  --ui-primary: #0E7C73;
-  --ui-primary-hover: #0B5F58;
-  --ui-on-primary: #FFFFFF;
-  --ui-secondary: #C4683C;
-  --ui-accent: #C4683C;
-  --ui-accent-soft: #F3E2D6;
-  --ui-price: #14110D;
-  --ui-success: #0E7C73;
-  --ui-success-soft: #D7EDEA;
-  --ui-warning: #B07908;
-  --ui-warning-soft: #F3E6C8;
-  --ui-danger: #B23B2E;
-  --ui-danger-soft: #F3DAD5;
-  --ui-ring: #0E7C73;
-  --ui-hero: linear-gradient(150deg, #0E7C73 0%, #3A9A90 52%, #E9DCC6 100%);
+  --ui-primary: #0e7c73;
+  --ui-primary-hover: #0b5f58;
+  --ui-on-primary: #ffffff;
+  --ui-secondary: #c4683c;
+  --ui-accent: #c4683c;
+  --ui-accent-soft: #f3e2d6;
+  --ui-price: #14110d;
+  --ui-success: #0e7c73;
+  --ui-success-soft: #d7edea;
+  --ui-warning: #b07908;
+  --ui-warning-soft: #f3e6c8;
+  --ui-danger: #b23b2e;
+  --ui-danger-soft: #f3dad5;
+  --ui-ring: #0e7c73;
+  --ui-hero: linear-gradient(150deg, #0e7c73 0%, #3a9a90 52%, #e9dcc6 100%);
 }
 [data-palette="sandbar"][data-mode="dark"] {
-  --ui-bg: #16130E;
-  --ui-surface: #211C15;
-  --ui-surface-muted: #2A241B;
-  --ui-surface-strong: #352D22;
-  --ui-text: #F1E9DB;
-  --ui-text-secondary: #C7BBA6;
-  --ui-text-muted: #998C77;
+  --ui-bg: #16130e;
+  --ui-surface: #211c15;
+  --ui-surface-muted: #2a241b;
+  --ui-surface-strong: #352d22;
+  --ui-text: #f1e9db;
+  --ui-text-secondary: #c7bba6;
+  --ui-text-muted: #998c77;
   --ui-border: rgba(241, 233, 219, 0.12);
   --ui-divider: rgba(241, 233, 219, 0.08);
-  --ui-primary: #19998D;
-  --ui-primary-hover: #2CB3A5;
-  --ui-on-primary: #07211E;
-  --ui-secondary: #E08A52;
-  --ui-accent: #E08A52;
+  --ui-primary: #19998d;
+  --ui-primary-hover: #2cb3a5;
+  --ui-on-primary: #07211e;
+  --ui-secondary: #e08a52;
+  --ui-accent: #e08a52;
   --ui-accent-soft: rgba(224, 138, 82, 0.16);
-  --ui-price: #F1E9DB;
-  --ui-success: #34D399;
+  --ui-price: #f1e9db;
+  --ui-success: #34d399;
   --ui-success-soft: rgba(52, 211, 153, 0.16);
-  --ui-warning: #E0A93C;
+  --ui-warning: #e0a93c;
   --ui-warning-soft: rgba(224, 169, 60, 0.16);
-  --ui-danger: #F08A7C;
+  --ui-danger: #f08a7c;
   --ui-danger-soft: rgba(240, 138, 124, 0.16);
-  --ui-ring: #19998D;
-  --ui-hero: linear-gradient(150deg, #0E2E2B 0%, #155F58 55%, #7A6F58 100%);
+  --ui-ring: #19998d;
+  --ui-hero: linear-gradient(150deg, #0e2e2b 0%, #155f58 55%, #7a6f58 100%);
 }
 
 /* ================================================================
@@ -218,56 +242,68 @@
    ================================================================ */
 [data-palette="sunset"] {
   --ui-radius: 14px;
-  --ui-bg: #FBF6F1;
-  --ui-surface: #FFFFFF;
-  --ui-surface-muted: #F4ECE5;
-  --ui-surface-strong: #ECDFD4;
-  --ui-text: #1B1726;
-  --ui-text-secondary: #4A4156;
-  --ui-text-muted: #6E6678;
+  --ui-bg: #fbf6f1;
+  --ui-surface: #ffffff;
+  --ui-surface-muted: #f4ece5;
+  --ui-surface-strong: #ecdfd4;
+  --ui-text: #1b1726;
+  --ui-text-secondary: #4a4156;
+  --ui-text-muted: #6e6678;
   --ui-border: rgba(27, 23, 38, 0.12);
   --ui-divider: rgba(27, 23, 38, 0.08);
-  --ui-primary: #FB5E3D;
-  --ui-primary-hover: #E0481F;
-  --ui-on-primary: #FFFFFF;
-  --ui-secondary: #7C3AED;
-  --ui-accent: #F59E0B;
-  --ui-accent-soft: #FCEBCF;
-  --ui-price: #E0481F;
-  --ui-success: #1F9D6B;
-  --ui-success-soft: #D8F2E7;
-  --ui-warning: #C77A0A;
-  --ui-warning-soft: #FBE8CB;
-  --ui-danger: #DC2626;
-  --ui-danger-soft: #FCE0DC;
-  --ui-ring: #FB5E3D;
-  --ui-hero: linear-gradient(130deg, #2A1B45 0%, #7C3AED 32%, #FB5E3D 72%, #F59E0B 100%);
+  --ui-primary: #fb5e3d;
+  --ui-primary-hover: #e0481f;
+  --ui-on-primary: #ffffff;
+  --ui-secondary: #7c3aed;
+  --ui-accent: #f59e0b;
+  --ui-accent-soft: #fcebcf;
+  --ui-price: #e0481f;
+  --ui-success: #1f9d6b;
+  --ui-success-soft: #d8f2e7;
+  --ui-warning: #c77a0a;
+  --ui-warning-soft: #fbe8cb;
+  --ui-danger: #dc2626;
+  --ui-danger-soft: #fce0dc;
+  --ui-ring: #fb5e3d;
+  --ui-hero: linear-gradient(
+    130deg,
+    #2a1b45 0%,
+    #7c3aed 32%,
+    #fb5e3d 72%,
+    #f59e0b 100%
+  );
 }
 [data-palette="sunset"][data-mode="dark"] {
-  --ui-bg: #1A1228;
+  --ui-bg: #1a1228;
   --ui-surface: #241834;
-  --ui-surface-muted: #2E2040;
-  --ui-surface-strong: #392A4E;
-  --ui-text: #F6ECF5;
-  --ui-text-secondary: #CDBBD2;
-  --ui-text-muted: #9E8CA6;
+  --ui-surface-muted: #2e2040;
+  --ui-surface-strong: #392a4e;
+  --ui-text: #f6ecf5;
+  --ui-text-secondary: #cdbbd2;
+  --ui-text-muted: #9e8ca6;
   --ui-border: rgba(246, 236, 245, 0.12);
   --ui-divider: rgba(246, 236, 245, 0.08);
-  --ui-primary: #FF7355;
-  --ui-primary-hover: #FF8E73;
-  --ui-on-primary: #2A0F08;
-  --ui-secondary: #A78BFA;
-  --ui-accent: #FBBF24;
+  --ui-primary: #ff7355;
+  --ui-primary-hover: #ff8e73;
+  --ui-on-primary: #2a0f08;
+  --ui-secondary: #a78bfa;
+  --ui-accent: #fbbf24;
   --ui-accent-soft: rgba(251, 191, 36, 0.16);
-  --ui-price: #FFB199;
-  --ui-success: #34D399;
+  --ui-price: #ffb199;
+  --ui-success: #34d399;
   --ui-success-soft: rgba(52, 211, 153, 0.16);
-  --ui-warning: #FBBF24;
+  --ui-warning: #fbbf24;
   --ui-warning-soft: rgba(251, 191, 36, 0.16);
-  --ui-danger: #F87171;
+  --ui-danger: #f87171;
   --ui-danger-soft: rgba(248, 113, 113, 0.16);
-  --ui-ring: #FF7355;
-  --ui-hero: linear-gradient(130deg, #150B26 0%, #5B2A9E 35%, #E0481F 78%, #C77A0A 100%);
+  --ui-ring: #ff7355;
+  --ui-hero: linear-gradient(
+    130deg,
+    #150b26 0%,
+    #5b2a9e 35%,
+    #e0481f 78%,
+    #c77a0a 100%
+  );
 }
 
 /* ================================================================
@@ -275,56 +311,56 @@
    ================================================================ */
 [data-palette="alpine"] {
   --ui-radius: 12px;
-  --ui-bg: #F4F3EF;
-  --ui-surface: #FFFFFF;
-  --ui-surface-muted: #ECEAE3;
-  --ui-surface-strong: #E1DED3;
-  --ui-text: #15201C;
-  --ui-text-secondary: #3C4642;
-  --ui-text-muted: #5C6660;
+  --ui-bg: #f4f3ef;
+  --ui-surface: #ffffff;
+  --ui-surface-muted: #eceae3;
+  --ui-surface-strong: #e1ded3;
+  --ui-text: #15201c;
+  --ui-text-secondary: #3c4642;
+  --ui-text-muted: #5c6660;
   --ui-border: rgba(21, 32, 28, 0.12);
   --ui-divider: rgba(21, 32, 28, 0.08);
-  --ui-primary: #157A5B;
-  --ui-primary-hover: #0C4A39;
-  --ui-on-primary: #FFFFFF;
-  --ui-secondary: #2E7CA8;
-  --ui-accent: #7FB7D9;
-  --ui-accent-soft: #E4F1F7;
-  --ui-price: #0C4A39;
-  --ui-success: #157A5B;
-  --ui-success-soft: #D7EEE4;
-  --ui-warning: #B5740C;
-  --ui-warning-soft: #F3E6C8;
-  --ui-danger: #B23B2E;
-  --ui-danger-soft: #F1DBD6;
-  --ui-ring: #157A5B;
-  --ui-hero: linear-gradient(150deg, #0C4A39 0%, #157A5B 45%, #7FB7D9 100%);
+  --ui-primary: #157a5b;
+  --ui-primary-hover: #0c4a39;
+  --ui-on-primary: #ffffff;
+  --ui-secondary: #2e7ca8;
+  --ui-accent: #7fb7d9;
+  --ui-accent-soft: #e4f1f7;
+  --ui-price: #0c4a39;
+  --ui-success: #157a5b;
+  --ui-success-soft: #d7eee4;
+  --ui-warning: #b5740c;
+  --ui-warning-soft: #f3e6c8;
+  --ui-danger: #b23b2e;
+  --ui-danger-soft: #f1dbd6;
+  --ui-ring: #157a5b;
+  --ui-hero: linear-gradient(150deg, #0c4a39 0%, #157a5b 45%, #7fb7d9 100%);
 }
 [data-palette="alpine"][data-mode="dark"] {
-  --ui-bg: #0D1714;
-  --ui-surface: #14211C;
-  --ui-surface-muted: #1B2A24;
-  --ui-surface-strong: #23352D;
-  --ui-text: #E6F0EA;
-  --ui-text-secondary: #B0C2B8;
-  --ui-text-muted: #87988E;
+  --ui-bg: #0d1714;
+  --ui-surface: #14211c;
+  --ui-surface-muted: #1b2a24;
+  --ui-surface-strong: #23352d;
+  --ui-text: #e6f0ea;
+  --ui-text-secondary: #b0c2b8;
+  --ui-text-muted: #87988e;
   --ui-border: rgba(230, 240, 234, 0.12);
   --ui-divider: rgba(230, 240, 234, 0.08);
-  --ui-primary: #2E9E78;
-  --ui-primary-hover: #45B98F;
+  --ui-primary: #2e9e78;
+  --ui-primary-hover: #45b98f;
   --ui-on-primary: #042018;
-  --ui-secondary: #9FCBE6;
-  --ui-accent: #9FCBE6;
+  --ui-secondary: #9fcbe6;
+  --ui-accent: #9fcbe6;
   --ui-accent-soft: rgba(159, 203, 230, 0.16);
-  --ui-price: #BFE3F0;
-  --ui-success: #34D399;
+  --ui-price: #bfe3f0;
+  --ui-success: #34d399;
   --ui-success-soft: rgba(52, 211, 153, 0.16);
-  --ui-warning: #E0A93C;
+  --ui-warning: #e0a93c;
   --ui-warning-soft: rgba(224, 169, 60, 0.16);
-  --ui-danger: #F08A7C;
+  --ui-danger: #f08a7c;
   --ui-danger-soft: rgba(240, 138, 124, 0.16);
-  --ui-ring: #2E9E78;
-  --ui-hero: linear-gradient(150deg, #08231B 0%, #0F5C46 50%, #3E6E84 100%);
+  --ui-ring: #2e9e78;
+  --ui-hero: linear-gradient(150deg, #08231b 0%, #0f5c46 50%, #3e6e84 100%);
 }
 
 /* ================================================================
@@ -333,56 +369,142 @@
    ================================================================ */
 [data-palette="midnight"] {
   --ui-radius: 12px;
-  --ui-bg: #F3F5FB;
-  --ui-surface: #FFFFFF;
-  --ui-surface-muted: #EAEDF7;
-  --ui-surface-strong: #DEE3F2;
-  --ui-text: #0C1124;
-  --ui-text-secondary: #3A4263;
-  --ui-text-muted: #5B6585;
+  --ui-bg: #f3f5fb;
+  --ui-surface: #ffffff;
+  --ui-surface-muted: #eaedf7;
+  --ui-surface-strong: #dee3f2;
+  --ui-text: #0c1124;
+  --ui-text-secondary: #3a4263;
+  --ui-text-muted: #5b6585;
   --ui-border: rgba(12, 17, 36, 0.12);
   --ui-divider: rgba(12, 17, 36, 0.08);
-  --ui-primary: #3B5BDB;
-  --ui-primary-hover: #2C46B8;
-  --ui-on-primary: #FFFFFF;
-  --ui-secondary: #7C3AED;
-  --ui-accent: #7C3AED;
-  --ui-accent-soft: #ECE6FE;
-  --ui-price: #2C46B8;
-  --ui-success: #0E9F6E;
-  --ui-success-soft: #DCFCEF;
-  --ui-warning: #C77A0A;
-  --ui-warning-soft: #FDF0D6;
-  --ui-danger: #DC2626;
-  --ui-danger-soft: #FEE2E2;
-  --ui-ring: #3B5BDB;
-  --ui-hero: linear-gradient(135deg, #1B2550 0%, #3B82F6 55%, #8B5CF6 100%);
+  --ui-primary: #3b5bdb;
+  --ui-primary-hover: #2c46b8;
+  --ui-on-primary: #ffffff;
+  --ui-secondary: #7c3aed;
+  --ui-accent: #7c3aed;
+  --ui-accent-soft: #ece6fe;
+  --ui-price: #2c46b8;
+  --ui-success: #0e9f6e;
+  --ui-success-soft: #dcfcef;
+  --ui-warning: #c77a0a;
+  --ui-warning-soft: #fdf0d6;
+  --ui-danger: #dc2626;
+  --ui-danger-soft: #fee2e2;
+  --ui-ring: #3b5bdb;
+  --ui-hero: linear-gradient(135deg, #1b2550 0%, #3b82f6 55%, #8b5cf6 100%);
 }
 [data-palette="midnight"][data-mode="dark"] {
-  --ui-bg: #0B0E1A;
-  --ui-surface: #161C2E;
-  --ui-surface-muted: #1E2640;
-  --ui-surface-strong: #28324F;
-  --ui-text: #E7ECF5;
-  --ui-text-secondary: #B4BFD4;
-  --ui-text-muted: #9AA6BD;
+  --ui-bg: #0b0e1a;
+  --ui-surface: #161c2e;
+  --ui-surface-muted: #1e2640;
+  --ui-surface-strong: #28324f;
+  --ui-text: #e7ecf5;
+  --ui-text-secondary: #b4bfd4;
+  --ui-text-muted: #9aa6bd;
   --ui-border: rgba(231, 236, 245, 0.12);
   --ui-divider: rgba(231, 236, 245, 0.08);
-  --ui-primary: #4F86FF;
-  --ui-primary-hover: #6AA0FF;
-  --ui-on-primary: #08122B;
-  --ui-secondary: #8B5CF6;
-  --ui-accent: #8B5CF6;
+  --ui-primary: #4f86ff;
+  --ui-primary-hover: #6aa0ff;
+  --ui-on-primary: #08122b;
+  --ui-secondary: #8b5cf6;
+  --ui-accent: #8b5cf6;
   --ui-accent-soft: rgba(139, 92, 246, 0.18);
-  --ui-price: #34D399;
-  --ui-success: #34D399;
+  --ui-price: #34d399;
+  --ui-success: #34d399;
   --ui-success-soft: rgba(52, 211, 153, 0.16);
-  --ui-warning: #FBBF24;
+  --ui-warning: #fbbf24;
   --ui-warning-soft: rgba(251, 191, 36, 0.16);
-  --ui-danger: #F87171;
+  --ui-danger: #f87171;
   --ui-danger-soft: rgba(248, 113, 113, 0.16);
-  --ui-ring: #4F86FF;
-  --ui-hero: linear-gradient(135deg, #0B0E1A 0%, #1B2550 42%, #3B82F6 78%, #8B5CF6 100%);
+  --ui-ring: #4f86ff;
+  --ui-hero: linear-gradient(
+    135deg,
+    #0b0e1a 0%,
+    #1b2550 42%,
+    #3b82f6 78%,
+    #8b5cf6 100%
+  );
+}
+
+/* ================================================================
+   7 · BUREAU — DESIGN-PREVIEW ONLY (CLAUDE-UI-051)
+
+   Swiss/typographic direction: no photography, no gradients, no cards.
+   Hierarchy comes from scale, rules, and alignment, so the palette is
+   near-monochrome with a single signal red reserved for the winning
+   price and the active tab.
+
+   Deliberately NOT registered in `PALETTES` / `PaletteId`
+   (src/lib/ui-theme/theme.ts), so it never appears in the visitor-facing
+   theme switcher. Nothing selects this block unless a subtree explicitly
+   sets data-palette="bureau" — today only /dev/ui-bureau does.
+
+   Three token overrides carry most of the direction:
+     radius   -> 0     (no rounded cards)
+     shadows  -> none  (no elevation; rules do the separating)
+     hero     -> flat  (no gradient; an inverted ink block)
+   ================================================================ */
+[data-palette="bureau"] {
+  --ui-radius-sm: 0px;
+  --ui-radius: 0px;
+  --ui-radius-lg: 0px;
+  --ui-shadow-card: none;
+  --ui-shadow-panel: none;
+
+  --ui-bg: #f2f2ef;
+  --ui-surface: #ffffff;
+  --ui-surface-muted: #e8e8e4;
+  --ui-surface-strong: #dcdcd7;
+  --ui-text: #101010;
+  --ui-text-secondary: #4a4a46;
+  --ui-text-muted: #6a6a66;
+  /* Rules are structural here, so borders sit heavier than other palettes. */
+  --ui-border: rgba(16, 16, 16, 0.24);
+  --ui-divider: rgba(16, 16, 16, 0.13);
+  --ui-primary: #101010;
+  --ui-primary-hover: #333330;
+  --ui-on-primary: #f2f2ef;
+  --ui-secondary: #d02b1f;
+  --ui-accent: #d02b1f;
+  --ui-accent-soft: #fbe7e5;
+  /* Prices are set in ink; the red is spent only on the best one. */
+  --ui-price: #101010;
+  --ui-success: #1f6b45;
+  --ui-success-soft: #e2efe8;
+  --ui-warning: #8a5a00;
+  --ui-warning-soft: #f6ebd8;
+  --ui-danger: #b3241a;
+  --ui-danger-soft: #fbe7e5;
+  --ui-ring: #d02b1f;
+  --ui-hero: linear-gradient(0deg, #101010 0%, #101010 100%);
+}
+[data-palette="bureau"][data-mode="dark"] {
+  --ui-bg: #121211;
+  --ui-surface: #1a1a18;
+  --ui-surface-muted: #232320;
+  --ui-surface-strong: #2d2d29;
+  --ui-text: #f0f0ec;
+  --ui-text-secondary: #bebeb8;
+  --ui-text-muted: #94948e;
+  --ui-border: rgba(240, 240, 236, 0.28);
+  --ui-divider: rgba(240, 240, 236, 0.14);
+  /* Swiss inversion: ink and paper trade places, so does the action color. */
+  --ui-primary: #f0f0ec;
+  --ui-primary-hover: #ffffff;
+  --ui-on-primary: #121211;
+  --ui-secondary: #ff5545;
+  --ui-accent: #ff5545;
+  --ui-accent-soft: rgba(255, 85, 69, 0.16);
+  --ui-price: #f0f0ec;
+  --ui-success: #4fbe85;
+  --ui-success-soft: rgba(79, 190, 133, 0.16);
+  --ui-warning: #e0a93c;
+  --ui-warning-soft: rgba(224, 169, 60, 0.16);
+  --ui-danger: #ff6a5a;
+  --ui-danger-soft: rgba(255, 106, 90, 0.16);
+  --ui-ring: #ff5545;
+  --ui-hero: linear-gradient(0deg, #f0f0ec 0%, #f0f0ec 100%);
 }
 
 /* ---- Skeleton shimmer (reduced-motion-aware) ------------------- */
