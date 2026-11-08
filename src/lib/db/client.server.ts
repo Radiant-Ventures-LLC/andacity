@@ -58,9 +58,13 @@ const configSignature = (config: DbRuntimeConfig) => {
 
 const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '::1'])
 
+// Treat loopback hosts, and any URL that explicitly opts out with
+// `sslmode=disable` (e.g. a Postgres service on a private Docker network),
+// as plain-TCP connections.
 const isLocalConnection = (connectionString: string) => {
   try {
-    return LOCAL_HOSTS.has(new URL(connectionString).hostname)
+    const u = new URL(connectionString)
+    return LOCAL_HOSTS.has(u.hostname) || u.searchParams.get('sslmode') === 'disable'
   } catch {
     return false
   }

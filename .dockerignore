@@ -1,0 +1,12 @@
+node_modules
+/dist
+/server
+/tmp
+/.tmp
+.git
+.env*
+*.log
+*.patch
+/andacity-ui-directions.html
+/seed/output/*
+!/seed/output/.gitkeep
