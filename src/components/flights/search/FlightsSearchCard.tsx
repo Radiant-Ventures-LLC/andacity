@@ -82,7 +82,7 @@ const resolveDefaultOriginLocation = async () => {
   return discovered[0] || null;
 };
 
-type FlightOriginAutofillStatus = "idle" | "locating" | "unavailable";
+type FlightOriginAutofillStatus = "idle" | "locating";
 
 export const FlightsSearchCard = component$((props: FlightsSearchCardProps) => {
   const fromLocation = useSignal<CanonicalLocation | null>(
@@ -178,12 +178,11 @@ export const FlightsSearchCard = component$((props: FlightsSearchCardProps) => {
       .then((location) => {
         if (cancelled) return null;
 
-        if (
-          !location &&
-          !String(from.value || "").trim() &&
-          !fromLocation.value
-        ) {
-          originAutofillStatus.value = "unavailable";
+        // Autofill is a convenience: if geolocation is denied, times out, or
+        // finds no nearby airport, fall back silently to the empty field
+        // rather than greeting the visitor with an error they never caused.
+        if (!location) {
+          originAutofillStatus.value = "idle";
         }
 
         return location;
@@ -202,11 +201,7 @@ export const FlightsSearchCard = component$((props: FlightsSearchCardProps) => {
     !fromLocation.value &&
     originAutofillStatus.value !== "idle";
   const originAutofillNotice =
-    originAutofillStatus.value === "locating"
-      ? "Using current location..."
-      : originAutofillStatus.value === "unavailable"
-        ? "Location unavailable. Enter a city or airport."
-        : "";
+    originAutofillStatus.value === "locating" ? "Using current location..." : "";
 
   const content = (
     <>
