@@ -49,10 +49,6 @@ import type { DestinationTopStay } from "~/lib/queries/hotels-pages.server";
 import type { HotelCity } from "~/data/hotel-cities";
 import type { CanonicalLocation } from "~/types/location";
 
-/** Existing demo fallback path the shared loader uses; it has no asset on
- * disk, so it's treated as "no real image" here rather than rendered. */
-const NO_REAL_IMAGE_SENTINEL = "/img/demo/hotel-1.jpg";
-
 type HotelsLandingPageProps = {
   cities: HotelCity[];
   featuredStays: DestinationTopStay[];
@@ -220,7 +216,7 @@ const RatingPill = component$((props: { rating: number; count: number }) => (
 
 const FeaturedStayRow = component$((props: { stay: DestinationTopStay }) => {
   const s = props.stay;
-  const hasRealImage = Boolean(s.image) && s.image !== NO_REAL_IMAGE_SENTINEL;
+  const hasRealImage = Boolean(s.image);
   const href = `/hotels/${encodeURIComponent(s.slug)}`;
   const policyLine = s.badges[0];
   const secondaryBadge = s.badges[1];
