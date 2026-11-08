@@ -8,6 +8,7 @@ import {
   getFlightPairingsForCity,
 } from "../generators/generate-flights.js";
 import { parseIsoDate, slugify } from "../fns/format.js";
+import { timezoneForCity } from "../cities/timezones.js";
 
 const TABLE_KEYS = [
   "countries",
@@ -185,7 +186,7 @@ const collectGeography = (collector, cityList) => {
         name: airportNameFromCode(city.name, airportCode),
         latitude: city.lat,
         longitude: city.lng,
-        timezone: null,
+        timezone: timezoneForCity(city.slug),
         isPrimary: index === 0,
       });
     }

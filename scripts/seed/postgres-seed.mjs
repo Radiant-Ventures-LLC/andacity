@@ -19,7 +19,12 @@ import {
   assertSeedInventory,
   validateSeedInventory,
 } from "../../src/seed/validation/inventory-validation.js";
-import { parseIsoDate } from "../../src/seed/fns/format.js";
+import { parseIsoDate, windowFromMinutes } from "../../src/seed/fns/format.js";
+import {
+  timezoneForCity,
+  zonedMinutesOfDay,
+  zonedWallTimeToEpoch,
+} from "../../src/seed/cities/timezones.js";
 
 const DEFAULT_OUT_DIR = path.resolve(process.cwd(), "seed/output/postgres");
 const DEFAULT_DB_SCHEMA = "andacity_app";
@@ -739,21 +744,6 @@ const readTableCounts = async (client, schema, payload) => {
 
 const toCentAmount = (amount) => Math.round(Number(amount || 0) * 100);
 
-const toIsoTimestampAtMinutes = (isoDate, totalMinutes) => {
-  const parsed = parseIsoDate(isoDate);
-  if (!parsed) return null;
-
-  const next = new Date(parsed.getTime());
-  next.setUTCMinutes(Number(totalMinutes || 0), 0, 0);
-  return next.toISOString();
-};
-
-const addMinutesToIso = (isoTimestamp, minutes) => {
-  const parsed = new Date(isoTimestamp);
-  if (Number.isNaN(parsed.getTime())) return null;
-  return new Date(parsed.getTime() + Number(minutes || 0) * 60_000).toISOString();
-};
-
 const createFlightRouteRows = (routes) => {
   return routes.map((route) => ({
     seedKey: `${route.from}:${route.originAirport}->${route.to}:${route.destinationAirport}`,
@@ -1107,20 +1097,28 @@ const applyDenseFlights = async (client, refs, args, seedConfig) => {
           const airlineId = refs.airlines.get(airlineSlug);
           if (!airlineId) continue;
 
-          const departureAtUtc = toIsoTimestampAtMinutes(
-            serviceDate,
-            flight.departureMinutes,
-          );
+          // The generator's schedule is a wall clock: departureMinutes is local
+          // time at the origin and arrival - departure is the block time. Turn
+          // that into real instants, then re-express arrival in the
+          // destination's local time.
           const durationMinutes =
             Number(flight.arrivalMinutes) >= Number(flight.departureMinutes)
               ? Number(flight.arrivalMinutes) - Number(flight.departureMinutes)
               : Number(flight.arrivalMinutes) -
                   Number(flight.departureMinutes) +
                   1440;
-          const arrivalAtUtc = departureAtUtc
-            ? addMinutesToIso(departureAtUtc, durationMinutes)
-            : null;
-          if (!departureAtUtc || !arrivalAtUtc) continue;
+          const originTz = timezoneForCity(route.from);
+          const destinationTz = timezoneForCity(route.to);
+          if (!parseIsoDate(serviceDate)) continue;
+          const departureEpoch = zonedWallTimeToEpoch(
+            serviceDate,
+            Number(flight.departureMinutes),
+            originTz,
+          );
+          const arrivalEpoch = departureEpoch + durationMinutes * 60_000;
+          const departureAtUtc = new Date(departureEpoch).toISOString();
+          const arrivalAtUtc = new Date(arrivalEpoch).toISOString();
+          const arrivalLocalMinutes = zonedMinutesOfDay(arrivalEpoch, destinationTz);
 
           const itineraryNaturalKey = `${flight.id}:${serviceDate}`;
           batch.itineraries.push({
@@ -1133,9 +1131,9 @@ const applyDenseFlights = async (client, refs, args, seedConfig) => {
             departureAtUtc,
             arrivalAtUtc,
             departureMinutes: Number(flight.departureMinutes),
-            arrivalMinutes: Number(flight.arrivalMinutes),
+            arrivalMinutes: arrivalLocalMinutes,
             departureWindow: flight.departureWindow,
-            arrivalWindow: flight.arrivalWindow,
+            arrivalWindow: windowFromMinutes(arrivalLocalMinutes),
             stops: Number(flight.stops),
             durationMinutes,
             stopsLabel: flight.stopsLabel,
