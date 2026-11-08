@@ -10,6 +10,8 @@
 set -euo pipefail
 
 HOST="${DEPLOY_HOST:-andacity-dev}"
+# Keep the session alive through long silent steps (the seed runs ~50 min without output).
+SSH_OPTS=(-o ServerAliveInterval=30 -o ServerAliveCountMax=10)
 REMOTE_DIR="${REMOTE_DIR:-/opt/andacity/src}"
 TOKEN_FILE="${ACCESS_TOKEN_FILE:-$HOME/.config/andacity/access-service-token}"
 URL="${DEV_URL:-https://dev.andacity.com}"
@@ -26,9 +28,9 @@ done
 cd "$(git rev-parse --show-toplevel)"
 echo "→ syncing $(git rev-parse --short HEAD)$(git diff --quiet HEAD || echo '+dirty') to $HOST:$REMOTE_DIR"
 # .dockerignore doubles as the rsync exclude list; patterns are root-anchored on purpose.
-rsync -az --delete --exclude-from=.dockerignore ./ "$HOST:$REMOTE_DIR/"
+rsync -az --delete -e "ssh ${SSH_OPTS[*]}" --exclude-from=.dockerignore ./ "$HOST:$REMOTE_DIR/"
 
-ssh "$HOST" MIGRATE=$MIGRATE SEED=$SEED REMOTE_DIR="$REMOTE_DIR" bash -s <<'REMOTE'
+ssh "${SSH_OPTS[@]}" "$HOST" MIGRATE=$MIGRATE SEED=$SEED REMOTE_DIR="$REMOTE_DIR" bash -s <<'REMOTE'
 set -euo pipefail
 cd "$REMOTE_DIR"
 dc() { docker compose -f deploy/dev/docker-compose.yml --env-file /opt/andacity/dev.env "$@"; }
@@ -43,6 +45,7 @@ if [[ $MIGRATE == 1 ]]; then
   if [[ $SEED == 1 ]]; then
     echo "→ reseeding (120-day horizon)"
     dc run --rm tools pnpm db:seed:120
+    dc exec -T postgres psql -qU andacity -d andacity -c ANALYZE
   fi
 fi
 echo "→ building + restarting app"
