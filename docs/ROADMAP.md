@@ -111,6 +111,7 @@ Goal: one trunk, green CI, an honest baseline.
 
 ### Phase 4: Production readiness (≈2 weeks)
 
+- [ ] Replace the AWS-era root `Dockerfile` (yarn, no lockfile) with a pnpm production image based on `deploy/dev/Dockerfile`.
 - [ ] Production environment for andacity.com: a managed or backed-up Postgres with point-in-time recovery, secrets management, and deploys from `main`.
 - [ ] A small production data footprint: a real supplier only needs reference data (airports, cities, locations), not the 40M-row seed.
 - [ ] Error monitoring and alerting (the UI-033 integration exists; point it at production), plus uptime checks.
