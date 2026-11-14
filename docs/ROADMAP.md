@@ -64,7 +64,10 @@ Goal: one trunk, green CI, an honest baseline.
 - [x] Fix the 3 failing search error-sanitization tests (`b18fb1d`; raw API errors are now exposed only in development).
 - [x] Merge `feat/baseline-ledger` → `dev` → `main` and tag **0.7.0**, with CHANGELOG, RELEASENOTES and README updated (2026-11-14).
 - [x] CI on every PR and on pushes to `main` and `dev`: `pnpm test`, `lint`, `build.types` and `build`. The dead EC2 deploy workflows are removed.
-- [ ] Triage the dependency vulnerabilities Dependabot reports (189 at release: 2 critical, 94 high).
+- [x] Triage the dependency vulnerabilities (`pnpm audit`: 129 → 3, no critical left). Remaining, accepted for now:
+  - `zod` 3.25.48 (high): pinned by `@builder.io/qwik-city`; no patched 3.x exists. The app doesn't use `zod`. Revisit when Qwik City moves to zod 4.
+  - `minimatch` 7–10 (moderate): lint toolchain only; fixed by a typescript-eslint upgrade.
+  - `esbuild` ≤0.24.2 (moderate): `drizzle-kit`'s dev-time loader only.
 - [ ] Bump the GitHub Actions versions off Node 20 before the runners drop it.
 - [ ] Finish the canonical search-route consolidation and delete the legacy live search routes.
 - [x] Delete the stale `CLAUDE-UI-051-baseline-ledger.patch`.
