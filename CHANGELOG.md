@@ -1,5 +1,20 @@
 # 🪐 Andacity Travel — CHANGELOG
 
+## v0.7.1
+
+Released `2026-11-14`
+
+### Security
+- Patched vulnerable dependencies (`pnpm audit`: 129 → 3 advisories, no critical): Qwik/Qwik City 1.20.4, Fastify 5.12.8, `@fastify/static` 10.1.11, `drizzle-orm` 0.45.4, Vite 7.3.8, plus transitive overrides. Remaining accepted advisories are listed in `docs/ROADMAP.md`.
+
+### Removed
+- Unreachable legacy search stack (~4.4k lines); legacy `/search/*` URLs still redirect to canonical routes
+- Unused direct `zod` dependency
+
+### Docs
+- AWS public-beta launch reports moved to `docs/archive/aws-public-beta/`
+- `AGENTS.md` database guidance updated; repo URLs point at `Radiant-Ventures-LLC/andacity`
+
 ## v0.7.0
 
 Released `2026-11-14`
