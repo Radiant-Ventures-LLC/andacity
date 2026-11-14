@@ -1,6 +1,6 @@
 # ADR 0001: Duffel as the inventory supplier, starting with flights
 
-- **Status:** Accepted for flights (Phase 1). The hotel and car approach is still open; see "Open question".
+- **Status:** Accepted. Flights are live in the sandbox on dev (2026-11-14). Hotels and cars: option A, decided 2026-11-14.
 - **Date:** 2026-11-14
 
 ## Context
@@ -49,11 +49,11 @@ We call the REST API directly (`src/lib/providers/duffel/duffelHttpClient.ts`) r
 
 **Booking is not enabled.** The `duffel` provider has no booking descriptor in `getProviderConfig`, so checkout refuses to book Duffel flights until Phase 2 adds order creation (`POST /air/orders`), payment and the confirmation path.
 
-## Open question: hotels and cars in the MVP
+## Hotels and cars in the MVP (decided: A)
 
 Decision 0 planned affiliate hand-offs for hotels and cars in the MVP, with full booking from the beta. Duffel's Stays and Cars APIs change the trade-off:
 
-- **A. Duffel search now, booking at the beta (recommended).** Real hotel and car inventory from Duffel in the MVP, with booking disabled until Phase 6. We don't build an affiliate integration that Phase 6 would throw away. The cost is that MVP trips hold hotel and car items you can price and save but not yet book.
+- **A. Duffel search now, booking at the beta. ✅ Chosen.** Real hotel and car inventory from Duffel in the MVP, with booking disabled until Phase 6. We don't build an affiliate integration that Phase 6 would throw away. The cost is that MVP trips hold hotel and car items you can price and save but not yet book.
 - **B. Affiliate hand-offs, as planned.** Users can complete hotel and car bookings in the MVP, on a partner site. It needs a second supplier relationship (e.g. Booking.com/Expedia affiliate programmes, DiscoverCars) whose code is replaced in Phase 6.
 - **C. Duffel booking for all three verticals in the MVP.** This is full booking early. Prepaid hotel and car sales bring the seller-of-travel and servicing obligations forward.
 
@@ -62,3 +62,11 @@ Decision 0 planned affiliate hand-offs for hotels and cars in the MVP, with full
 - No live calls happen until a Duffel test token is configured (`duffel_test_…`, from the Duffel dashboard in Developer test mode).
 - Every resolve on a cold cache is a full offer request. Phase 2 should look at caching offer responses by key, or using `GET /air/offers/{id}` while the offer is still valid.
 - Fare-brand choice (basic vs. main vs. flex) is collapsed to the cheapest option. Exposing brands needs the inventory ID to carry a brand token, along the lines of the hotel `variant` token.
+
+## Trip persistence for supplier inventory
+
+Trip items used to require a row in the seeded inventory tables. The `trip_items_inventory_ref_ck` constraint enforced this, along with a seeded-table join for availability. Migration `0017` makes each vertical's seeded reference optional; an item may still never reference another vertical's table.
+
+Supplier-sourced flights are saved from the live bookable entity (`resolveSupplierFlightTripItem`), with the full entity in the inventory snapshot. Their availability comes from provider revalidation instead of the seeded join. Hotels and cars follow the same pattern when their Duffel adapters land.
+
+Only one inventory source per vertical is active at a time. Trip items saved against the other source come back unavailable on their next re-check.

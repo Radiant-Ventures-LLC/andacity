@@ -83,7 +83,10 @@ import {
   toBookableEntityFromTripCandidate,
   toBookableEntityFromTripItem,
 } from '~/lib/booking/bookable-entity'
-import { resolveInventoryWithSnapshot } from '~/lib/inventory/resolveInventory'
+import {
+  resolveInventoryRecord,
+  resolveInventoryWithSnapshot,
+} from '~/lib/inventory/resolveInventory'
 import { buildTripEditBundleImpact } from '~/lib/trips/bundle-swap-impact'
 import {
   buildTripIntelligenceSummary,
@@ -1182,16 +1185,109 @@ const resolveCarTripItem = async (
   return resolved
 }
 
+const findCityByAirportCode = async (tx: any, airportCode: string | null | undefined) => {
+  const code = String(airportCode || '').trim().toUpperCase()
+  if (!/^[A-Z]{3}$/.test(code)) return null
+  const rows = await tx
+    .select({ id: cities.id, name: cities.name })
+    .from(airports)
+    .innerJoin(cities, eq(airports.cityId, cities.id))
+    .where(eq(airports.iataCode, code))
+    .limit(1)
+  return (rows[0] as { id: number; name: string } | undefined) || null
+}
+
+// Supplier-sourced flights (e.g. Duffel) have no seeded itinerary row; persist
+// them from the live bookable entity instead. Revalidation already resolves
+// through the provider registry, so later re-checks go back to the supplier.
+const resolveSupplierFlightTripItem = async (
+  tx: any,
+  candidate: TripItemCandidate,
+): Promise<ResolvedTripItemSnapshot> => {
+  const record = await resolveInventoryRecord({ inventoryId: candidate.inventoryId })
+  const entity = record?.entity
+  if (!record || !entity || entity.vertical !== 'flight' || record.isAvailable === false) {
+    throw new TripRepoError(
+      'inventory_not_found',
+      `Flight inventory ${candidate.inventoryId} is no longer available.`,
+    )
+  }
+
+  const segments = Array.isArray(entity.payload.segments) ? entity.payload.segments : []
+  const outbound = segments.filter((segment) => (segment.sliceIndex ?? 0) === 0)
+  const originCode = entity.bookingContext.origin || outbound[0]?.originCode || null
+  const destinationCode =
+    entity.bookingContext.destination || outbound[outbound.length - 1]?.destinationCode || null
+  const [originCity, destinationCity] = await Promise.all([
+    findCityByAirportCode(tx, originCode),
+    findCityByAirportCode(tx, destinationCode),
+  ])
+  const serviceDate = toIsoDate(entity.bookingContext.departDate)
+  const stops = Math.max(0, outbound.length - 1)
+  const fallbackMeta = [
+    stops === 0 ? 'Nonstop' : stops === 1 ? '1 stop' : `${stops} stops`,
+    titleCaseToken(entity.payload.cabinClass || ""),
+  ].filter(Boolean) as string[]
+  const normalizedMeta = normalizeMeta(candidate.meta)
+  const normalizedSnapshot = normalizeSnapshotCore({
+    itemType: 'flight',
+    inventoryId: candidate.inventoryId,
+    snapshotPriceCents: candidate.priceCents ?? entity.price.amountCents ?? 0,
+    snapshotCurrencyCode: candidate.currencyCode || entity.price.currency || 'USD',
+    snapshotTimestamp: new Date(),
+  })
+
+  return {
+    itemType: 'flight',
+    inventoryId: normalizedSnapshot.inventoryId,
+    bookingSessionId: readStoredTripItemBookingSessionId({
+      metadata: candidate.metadata,
+    }),
+    hotelId: null,
+    flightItineraryId: null,
+    carInventoryId: null,
+    startCityId: originCity?.id ?? null,
+    endCityId: destinationCity?.id ?? null,
+    startDate: serviceDate,
+    endDate: serviceDate,
+    snapshotPriceCents: normalizedSnapshot.snapshotPriceCents,
+    snapshotCurrencyCode: normalizedSnapshot.snapshotCurrencyCode,
+    snapshotTimestamp: normalizedSnapshot.snapshotTimestamp,
+    title: String(candidate.title || '').trim() || entity.title || 'Flight',
+    subtitle:
+      String(candidate.subtitle || '').trim() ||
+      `${originCity?.name || originCode || 'Origin'} → ${destinationCity?.name || destinationCode || 'Destination'}`,
+    imageUrl: String(candidate.imageUrl || '').trim() || null,
+    meta: normalizedMeta.length ? normalizedMeta : fallbackMeta,
+    metadata: normalizeSnapshotMetadata({
+      itemType: 'flight',
+      inventoryId: normalizedSnapshot.inventoryId,
+      metadata: candidate.metadata,
+      providerInventoryId: null,
+    }),
+    inventorySnapshot: {
+      providerInventoryId: null,
+      hotelAvailabilitySnapshotId: null,
+      bookableEntity: entity,
+      availability: buildFlightTripItemAvailabilitySnapshot({
+        snapshotTimestamp: record.checkedAt,
+        serviceDate,
+        departureAt: entity.payload.departureAt,
+        arrivalAt: entity.payload.arrivalAt,
+        seatsRemaining: entity.payload.policy?.seatsRemaining ?? null,
+        itineraryType: entity.payload.itineraryType,
+      }),
+    },
+  }
+}
+
 const resolveFlightTripItem = async (
   tx: any,
   candidate: TripItemCandidate,
 ): Promise<ResolvedTripItemSnapshot> => {
   const providerInventoryId = readProviderInventoryId(candidate)
   if (providerInventoryId == null) {
-    throw new TripRepoError(
-      'inventory_not_found',
-      `Flight inventory ${candidate.inventoryId} could not be resolved to a provider record.`,
-    )
+    return resolveSupplierFlightTripItem(tx, candidate)
   }
 
   const originCity = alias(cities, 'trip_origin_city')
@@ -1503,7 +1599,10 @@ const readTripItems = async (tripId: number): Promise<TripItemRecord[]> => {
       endCityName: row.endCityName,
       liveHotelExists: row.liveHotelId != null,
       liveCarExists: row.liveCarId != null,
-      liveFlightExists: row.liveFlightId != null,
+      // Supplier-sourced flights (no seeded itinerary row) are checked through
+      // provider revalidation instead of the seeded-table join.
+      liveFlightExists:
+        row.liveFlightId != null || (row.itemType === 'flight' && row.flightItineraryId == null),
       liveCarAvailabilityStart: row.liveCarAvailabilityStart,
       liveCarAvailabilityEnd: row.liveCarAvailabilityEnd,
       liveCarMinDays: row.liveCarMinDays,
@@ -1514,7 +1613,11 @@ const readTripItems = async (tripId: number): Promise<TripItemRecord[]> => {
           ? row.liveCarLocationType
           : null,
       liveCarLocationName: row.liveCarLocationName,
-      liveFlightServiceDate: row.liveFlightServiceDate,
+      liveFlightServiceDate:
+        row.liveFlightServiceDate ??
+        (row.itemType === 'flight' && row.flightItineraryId == null
+          ? toIsoDate(row.startDate)
+          : null),
       liveFlightDepartureAt: toOptionalIsoTimestamp(row.liveFlightDepartureAt),
       liveFlightArrivalAt: toOptionalIsoTimestamp(row.liveFlightArrivalAt),
       liveFlightSeatsRemaining:

@@ -81,14 +81,19 @@ Goal: one trunk, green CI, an honest baseline.
 ### Phase 1: Real inventory (≈3–5 weeks)
 
 - [x] Choose a supplier: **Duffel** for flights, with Stays and Cars available on the same API ([ADR 0001](adr/0001-duffel-flight-inventory.md)).
-- [ ] Create a Duffel account and a test token; set `DUFFEL_ACCESS_TOKEN` and `ANDACITY_FLIGHT_PROVIDER=duffel` in `/opt/andacity/dev.env`. **(Owner action.)**
-- [x] Build the Duffel flight adapter (search, resolve, price) on the existing adapter contract, with fixture tests. Verify it against the sandbox once the token exists.
+- [x] Duffel test account and token, configured on dev (`/opt/andacity/dev.env`). dev.andacity.com now serves Duffel sandbox flights.
+- [x] Build the Duffel flight adapter (search, resolve, price) on the existing adapter contract, with fixture tests, and verify it against the sandbox (one-way, connections, round trips).
+- [x] Persist supplier-sourced trip items (migration 0017) and revalidate them through the provider.
 - [x] Map supplier offers into the canonical inventory ID scheme (segment-derived flight key), with a 5-minute offer-request cache.
-- [ ] Hotels and cars: **decision pending** ([ADR 0001, open question](adr/0001-duffel-flight-inventory.md#open-question-hotels-and-cars-in-the-mvp)). Either Duffel Stays/Cars search now with booking at the beta, or affiliate hand-offs as originally planned.
+- [ ] Hotels: Duffel Stays adapter (search, resolve, price), with booking disabled until Phase 6 ([ADR 0001](adr/0001-duffel-flight-inventory.md), option A).
+- [ ] Cars: Duffel Cars adapter (search, resolve, price), with booking disabled until Phase 6.
 - [x] Env setting to pick the flight source (`ANDACITY_FLIGHT_PROVIDER=seed|duffel`); the seed stays the default. Hotels and cars follow once decided.
-- [ ] Label any inventory that is not live booking in the UI ("Book on partner site").
+- [ ] Label hotel and car items as "booking opens at beta" in the UI, and keep checkout from offering them.
+- [ ] Hide or explain "Continue to checkout" for trips whose items can't be booked yet (Duffel flight booking arrives in Phase 2).
+- [ ] Show local time zones on trip item times (trip cards print bare times).
+- [ ] Investigate `redeploy.sh --migrate` once leaving the app on a stale image (seen 2026-11-14).
 
-**Exit:** a search on dev returns real sandbox offers, and adding one to a trip and revalidating it works.
+**Exit:** a search on dev returns real sandbox offers, and adding one to a trip and revalidating it works. ✅ Met for flights on 2026-11-14 (a sandbox price drop was correctly flagged as drift).
 
 ### Phase 2: Transaction completeness (≈3–4 weeks)
 

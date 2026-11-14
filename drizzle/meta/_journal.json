@@ -120,6 +120,13 @@
       "when": 1775059200000,
       "tag": "0016_saved_traveler_profiles",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1775145600000,
+      "tag": "0017_trip_items_supplier_inventory",
+      "breakpoints": true
     }
   ]
 }

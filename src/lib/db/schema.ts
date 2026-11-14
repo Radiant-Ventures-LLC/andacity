@@ -830,21 +830,21 @@ export const tripItems = dbTable(
     ),
     inventoryRefCheck: check(
       'trip_items_inventory_ref_ck',
+      // Each vertical may reference only its own seeded inventory table, and
+      // that reference is optional: supplier-sourced items (e.g. Duffel) have
+      // no seeded row (migration 0017).
       sql`(
           ${table.itemType} = 'hotel'
-          and ${table.hotelId} is not null
           and ${table.flightItineraryId} is null
           and ${table.carInventoryId} is null
         ) or (
           ${table.itemType} = 'flight'
           and ${table.hotelId} is null
-          and ${table.flightItineraryId} is not null
           and ${table.carInventoryId} is null
         ) or (
           ${table.itemType} = 'car'
           and ${table.hotelId} is null
           and ${table.flightItineraryId} is null
-          and ${table.carInventoryId} is not null
         )`,
     ),
   }),
