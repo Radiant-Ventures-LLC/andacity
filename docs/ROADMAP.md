@@ -1,6 +1,6 @@
 # Andacity Roadmap to MVP
 
-_Last updated: 2026-11-13_
+_Last updated: 2026-11-14_
 
 ## Where we are
 
@@ -61,12 +61,19 @@ The provider-adapter and booking-adapter interfaces were built for this kind of 
 
 Goal: one trunk, green CI, an honest baseline.
 
-- [ ] Fix the 3 failing search error-sanitization tests.
-- [ ] Merge `feat/baseline-ledger` → `dev` → `main` and tag **v0.7.0** (the UI redesign release). Update the CHANGELOG and README.
-- [ ] CI on every PR: `pnpm test`, `lint`, `build.types` and `build`.
-- [ ] Finish the canonical search-route consolidation and delete the legacy live search routes.
-- [ ] Delete the stale `CLAUDE-UI-051-baseline-ledger.patch` (already committed as `9b0755b`). Move the obsolete AWS launch-gate reports to `docs/archive/`.
-- [ ] Fix the `AGENTS.md` database guidance so it matches the current environment.
+- [x] Fix the 3 failing search error-sanitization tests (`b18fb1d`; raw API errors are now exposed only in development).
+- [x] Merge `feat/baseline-ledger` → `dev` → `main` and tag **0.7.0**, with CHANGELOG, RELEASENOTES and README updated (2026-11-14).
+- [x] CI on every PR and on pushes to `main` and `dev`: `pnpm test`, `lint`, `build.types` and `build`. The dead EC2 deploy workflows are removed.
+- [x] Triage the dependency vulnerabilities (`pnpm audit`: 129 → 3, no critical left). Remaining, accepted for now:
+  - `zod` 3.25.48 (high): pinned by `@builder.io/qwik-city`; no patched 3.x exists. The app doesn't use `zod`. Revisit when Qwik City moves to zod 4.
+  - `minimatch` 7–10 (moderate): lint toolchain only; fixed by a typescript-eslint upgrade.
+  - `esbuild` ≤0.24.2 (moderate): `drizzle-kit`'s dev-time loader only.
+- [ ] Bump the GitHub Actions versions off Node 20 before the runners drop it.
+- [x] Finish the canonical search-route consolidation. The legacy `/search/*` and `/cars/search/*` routes were already thin redirects to canonical routes; the unreachable legacy search stack (old query modules, mappers, results/filter/compare components, ~4.4k lines) is deleted.
+- [ ] Dead-code pass on the rest of the files no route reaches (explore intent mappers, email components, small booking/ownership predicates). Decide whether each one is wired up later or deleted.
+- [x] Delete the stale `CLAUDE-UI-051-baseline-ledger.patch`.
+- [x] Move the obsolete AWS launch-gate reports to `docs/archive/aws-public-beta/`.
+- [x] Fix the `AGENTS.md` database guidance so it matches the current environment, and point `package.json` repo URLs at `Radiant-Ventures-LLC/andacity`.
 - [ ] Prune merged or abandoned `feature/new-ui-ux--*` branches.
 
 **Exit:** `main` = v0.7.0, CI green, dev.andacity.com deployed from `main`.

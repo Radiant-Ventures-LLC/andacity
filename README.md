@@ -4,7 +4,7 @@ Welcome to the development space for [andacity.com](https://andacity.com), an ex
 
 ## Release Info
 
-* Version **`0.7.0`**
+* Version **`0.7.1`**
 * Released on `2026-11-14`
 
 ### v0.7.0 Highlights

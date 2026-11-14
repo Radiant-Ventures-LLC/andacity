@@ -3,3 +3,9 @@ allowBuilds:
   esbuild: true
   less: true
   sharp: true
+
+# Security overrides for transitive build-time deps (see docs/ROADMAP.md Phase 0).
+overrides:
+  picomatch@>=4.0.0 <4.0.4: ^4.0.4
+  immutable@>=5.0.0 <5.1.8: ^5.1.8
+  sharp@<0.35.5: ^0.35.5
