@@ -10,6 +10,7 @@ import {
   type IncrementalSearchSnapshot,
   isSearchExecutionError,
 } from '~/server/search/searchService'
+import { readApiErrorMessage } from '~/lib/server/api-response'
 import type {
   NormalizedSearchResults,
   SearchRequest,
@@ -138,16 +139,20 @@ const getLocationValidationMessage = (
   return 'Search locations must reference supported airport codes.'
 }
 
-const toExecutionFailure = (): SearchResultsApiHttpResponse => ({
-  status: 500,
-  body: {
-    ok: false,
-    error: {
-      code: 'SEARCH_EXECUTION_FAILED',
-      message: SEARCH_EXECUTION_FAILED_MESSAGE,
+const toExecutionFailure = (error?: unknown): SearchResultsApiHttpResponse => {
+  if (error) console.error('[search-api] search execution failed', error)
+
+  return {
+    status: 500,
+    body: {
+      ok: false,
+      error: {
+        code: 'SEARCH_EXECUTION_FAILED',
+        message: readApiErrorMessage(error, SEARCH_EXECUTION_FAILED_MESSAGE),
+      },
     },
-  },
-})
+  }
+}
 
 const toValidationError = (
   code: SearchResultsApiErrorCode,
@@ -192,7 +197,8 @@ const toErrorResponse = (
     }
   }
 
-  return toExecutionFailure()
+  console.error('[search-results-api]', error)
+  return toExecutionFailure(error)
 }
 
 const toSuccessResponse = (

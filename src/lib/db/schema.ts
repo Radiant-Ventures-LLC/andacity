@@ -42,6 +42,114 @@ export const flightTimeWindowEnum = dbEnum('flight_time_window', ['morning', 'af
 export const tripStatusEnum = dbEnum('trip_status', ['draft', 'planning', 'ready', 'archived'])
 export const tripDateSourceEnum = dbEnum('trip_date_source', ['auto', 'manual'])
 export const tripItemTypeEnum = dbEnum('trip_item_type', ['hotel', 'flight', 'car'])
+export const checkoutSessionStatusEnum = dbEnum('checkout_session_status', [
+  'draft',
+  'blocked',
+  'ready',
+  'expired',
+  'completed',
+  'abandoned',
+])
+export const checkoutRevalidationStatusEnum = dbEnum(
+  'checkout_revalidation_status',
+  ['idle', 'pending', 'passed', 'failed'],
+)
+export const travelerTypeEnum = dbEnum('traveler_type', ['adult', 'child', 'infant'])
+export const travelerRoleEnum = dbEnum('traveler_role', [
+  'passenger',
+  'guest',
+  'driver',
+  'primary_contact',
+])
+export const travelerDocumentTypeEnum = dbEnum('traveler_document_type', [
+  'passport',
+  'drivers_license',
+  'national_id',
+])
+export const savedTravelerProfileStatusEnum = dbEnum(
+  'saved_traveler_profile_status',
+  ['active', 'archived'],
+)
+export const paymentProviderEnum = dbEnum('payment_provider', ['stripe'])
+export const checkoutPaymentSessionStatusEnum = dbEnum(
+  'checkout_payment_session_status',
+  ['draft', 'pending', 'requires_action', 'authorized', 'succeeded', 'canceled', 'failed', 'expired'],
+)
+export const bookingRunStatusEnum = dbEnum('booking_run_status', [
+  'pending',
+  'processing',
+  'partial',
+  'succeeded',
+  'failed',
+  'canceled',
+])
+export const bookingItemExecutionStatusEnum = dbEnum(
+  'booking_item_execution_status',
+  ['pending', 'processing', 'succeeded', 'failed', 'requires_manual_review', 'skipped'],
+)
+export const bookingConfirmationStatusEnum = dbEnum(
+  'booking_confirmation_status',
+  ['pending', 'partial', 'confirmed', 'requires_manual_review', 'failed'],
+)
+export const confirmationItemStatusEnum = dbEnum(
+  'confirmation_item_status',
+  ['confirmed', 'pending', 'failed', 'requires_manual_review'],
+)
+export const itineraryStatusEnum = dbEnum('itinerary_status', [
+  'active',
+  'partial',
+  'upcoming',
+  'in_progress',
+  'completed',
+  'canceled',
+  'archived',
+])
+export const itineraryItemStatusEnum = dbEnum('itinerary_item_status', [
+  'confirmed',
+  'pending',
+  'in_progress',
+  'completed',
+  'canceled',
+  'failed',
+])
+export const itineraryOwnershipModeEnum = dbEnum('itinerary_ownership_mode', [
+  'anonymous',
+  'user',
+])
+export const itineraryOwnershipSourceEnum = dbEnum(
+  'itinerary_ownership_source',
+  [
+    'checkout_session',
+    'confirmation_flow',
+    'manual_claim',
+    'auto_attach_on_signin',
+  ],
+)
+export const notificationChannelEnum = dbEnum('notification_channel', [
+  'email',
+  'sms',
+  'push',
+])
+export const notificationProviderEnum = dbEnum('notification_provider', [
+  'resend',
+  'sendgrid',
+])
+export const notificationEventTypeEnum = dbEnum('notification_event_type', [
+  'booking_confirmation',
+  'booking_partial_confirmation',
+  'booking_manual_review',
+  'itinerary_ready',
+  'itinerary_claim_available',
+])
+export const notificationStatusEnum = dbEnum('notification_status', [
+  'draft',
+  'queued',
+  'sent',
+  'delivered',
+  'failed',
+  'skipped',
+  'canceled',
+])
 
 export const countries = dbTable(
   'countries',
@@ -793,6 +901,565 @@ export const tripItemInventorySnapshots = dbTable(
   }),
 )
 
+export const checkoutSessions = dbTable(
+  'checkout_sessions',
+  {
+    id: text('id').primaryKey(),
+    tripId: bigint('trip_id', { mode: 'number' })
+      .notNull()
+      .references(() => trips.id, { onDelete: 'cascade' }),
+    status: checkoutSessionStatusEnum('status').notNull().default('draft'),
+    revalidationStatus: checkoutRevalidationStatusEnum('revalidation_status')
+      .notNull()
+      .default('idle'),
+    currency: varchar('currency', { length: 3 }),
+    itemsJson: jsonb('items_json').$type<Record<string, unknown>[]>().notNull().default(sql`'[]'::jsonb`),
+    totalsJson: jsonb('totals_json').$type<Record<string, unknown>>().notNull().default(sql`'{}'::jsonb`),
+    revalidationSummaryJson: jsonb('revalidation_summary_json').$type<Record<string, unknown>>(),
+    lastRevalidatedAt: timestamp('last_revalidated_at', { withTimezone: true }),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
+    abandonedAt: timestamp('abandoned_at', { withTimezone: true }),
+    createdAt: createdAtColumn(),
+    updatedAt: updatedAtColumn(),
+  },
+  (table) => ({
+    tripIdx: index('checkout_sessions_trip_idx').on(table.tripId),
+    statusIdx: index('checkout_sessions_status_idx').on(table.status),
+    updatedIdx: index('checkout_sessions_updated_idx').on(table.updatedAt),
+    tripStatusUpdatedIdx: index('checkout_sessions_trip_status_updated_idx').on(
+      table.tripId,
+      table.status,
+      table.updatedAt,
+    ),
+  }),
+)
+
+export const checkoutTravelerProfiles = dbTable(
+  'checkout_traveler_profiles',
+  {
+    id: text('id').primaryKey(),
+    checkoutSessionId: text('checkout_session_id')
+      .notNull()
+      .references(() => checkoutSessions.id, { onDelete: 'cascade' }),
+    type: travelerTypeEnum('type').notNull().default('adult'),
+    role: travelerRoleEnum('role').notNull().default('passenger'),
+    firstName: text('first_name').notNull(),
+    middleName: text('middle_name'),
+    lastName: text('last_name').notNull(),
+    dateOfBirth: date('date_of_birth'),
+    email: text('email'),
+    phone: text('phone'),
+    nationality: varchar('nationality', { length: 2 }),
+    documentType: travelerDocumentTypeEnum('document_type'),
+    documentNumber: text('document_number'),
+    documentExpiryDate: date('document_expiry_date'),
+    issuingCountry: varchar('issuing_country', { length: 2 }),
+    knownTravelerNumber: text('known_traveler_number'),
+    redressNumber: text('redress_number'),
+    driverAge: integer('driver_age'),
+    createdAt: createdAtColumn(),
+    updatedAt: updatedAtColumn(),
+  },
+  (table) => ({
+    checkoutIdx: index('checkout_traveler_profiles_checkout_idx').on(
+      table.checkoutSessionId,
+    ),
+    roleIdx: index('checkout_traveler_profiles_role_idx').on(table.role),
+    checkoutRoleIdx: index('checkout_traveler_profiles_checkout_role_idx').on(
+      table.checkoutSessionId,
+      table.role,
+    ),
+    emailIdx: index('checkout_traveler_profiles_email_idx').on(table.email),
+    documentIdx: index('checkout_traveler_profiles_document_idx').on(
+      table.documentType,
+      table.documentNumber,
+    ),
+  }),
+)
+
+export const savedTravelerProfiles = dbTable(
+  'saved_traveler_profiles',
+  {
+    id: text('id').primaryKey(),
+    ownerUserId: text('owner_user_id').notNull(),
+    status: savedTravelerProfileStatusEnum('status').notNull().default('active'),
+    type: travelerTypeEnum('type').notNull().default('adult'),
+    firstName: text('first_name').notNull(),
+    middleName: text('middle_name'),
+    lastName: text('last_name').notNull(),
+    dateOfBirth: date('date_of_birth'),
+    email: text('email'),
+    phone: text('phone'),
+    nationality: varchar('nationality', { length: 2 }),
+    documentType: travelerDocumentTypeEnum('document_type'),
+    documentNumber: text('document_number'),
+    documentExpiryDate: date('document_expiry_date'),
+    issuingCountry: varchar('issuing_country', { length: 2 }),
+    knownTravelerNumber: text('known_traveler_number'),
+    redressNumber: text('redress_number'),
+    driverAge: integer('driver_age'),
+    label: text('label'),
+    isDefault: boolean('is_default').notNull().default(false),
+    createdAt: createdAtColumn(),
+    updatedAt: updatedAtColumn(),
+  },
+  (table) => ({
+    ownerIdx: index('saved_traveler_profiles_owner_idx').on(table.ownerUserId),
+    ownerStatusIdx: index('saved_traveler_profiles_owner_status_idx').on(
+      table.ownerUserId,
+      table.status,
+    ),
+    ownerDefaultIdx: index('saved_traveler_profiles_owner_default_idx').on(
+      table.ownerUserId,
+      table.isDefault,
+      table.status,
+    ),
+    emailIdx: index('saved_traveler_profiles_email_idx').on(table.email),
+    updatedIdx: index('saved_traveler_profiles_updated_idx').on(table.updatedAt),
+    documentIdx: index('saved_traveler_profiles_document_idx').on(
+      table.documentType,
+      table.documentNumber,
+    ),
+  }),
+)
+
+export const checkoutTravelerAssignments = dbTable(
+  'checkout_traveler_assignments',
+  {
+    id: text('id').primaryKey(),
+    checkoutSessionId: text('checkout_session_id')
+      .notNull()
+      .references(() => checkoutSessions.id, { onDelete: 'cascade' }),
+    checkoutItemKey: text('checkout_item_key'),
+    travelerProfileId: text('traveler_profile_id')
+      .notNull()
+      .references(() => checkoutTravelerProfiles.id, { onDelete: 'cascade' }),
+    role: travelerRoleEnum('role').notNull().default('passenger'),
+    isPrimary: boolean('is_primary').notNull().default(false),
+    createdAt: createdAtColumn(),
+    updatedAt: updatedAtColumn(),
+  },
+  (table) => ({
+    checkoutIdx: index('checkout_traveler_assignments_checkout_idx').on(
+      table.checkoutSessionId,
+    ),
+    profileIdx: index('checkout_traveler_assignments_profile_idx').on(
+      table.travelerProfileId,
+    ),
+    checkoutItemRoleIdx: index(
+      'checkout_traveler_assignments_checkout_item_role_idx',
+    ).on(table.checkoutSessionId, table.checkoutItemKey, table.role),
+    checkoutRolePrimaryIdx: index(
+      'checkout_traveler_assignments_checkout_role_primary_idx',
+    ).on(table.checkoutSessionId, table.role, table.isPrimary),
+    identityUq: uniqueIndex('checkout_traveler_assignments_identity_uq').on(
+      table.checkoutSessionId,
+      table.checkoutItemKey,
+      table.travelerProfileId,
+      table.role,
+    ),
+  }),
+)
+
+export const checkoutPaymentSessions = dbTable(
+  'checkout_payment_sessions',
+  {
+    id: text('id').primaryKey(),
+    checkoutSessionId: text('checkout_session_id')
+      .notNull()
+      .references(() => checkoutSessions.id, { onDelete: 'cascade' }),
+    provider: paymentProviderEnum('provider').notNull(),
+    status: checkoutPaymentSessionStatusEnum('status').notNull().default('draft'),
+    currency: varchar('currency', { length: 3 }).notNull(),
+    amountJson: jsonb('amount_json').$type<Record<string, unknown>>().notNull().default(sql`'{}'::jsonb`),
+    revalidationFingerprint: text('revalidation_fingerprint').notNull(),
+    providerPaymentIntentId: text('provider_payment_intent_id').notNull(),
+    providerClientSecret: text('provider_client_secret'),
+    providerMetadataJson: jsonb('provider_metadata_json')
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    authorizedAt: timestamp('authorized_at', { withTimezone: true }),
+    succeededAt: timestamp('succeeded_at', { withTimezone: true }),
+    failedAt: timestamp('failed_at', { withTimezone: true }),
+    canceledAt: timestamp('canceled_at', { withTimezone: true }),
+    expiresAt: timestamp('expires_at', { withTimezone: true }),
+    createdAt: createdAtColumn(),
+    updatedAt: updatedAtColumn(),
+  },
+  (table) => ({
+    checkoutIdx: index('checkout_payment_sessions_checkout_idx').on(table.checkoutSessionId),
+    statusIdx: index('checkout_payment_sessions_status_idx').on(table.status),
+    updatedIdx: index('checkout_payment_sessions_updated_idx').on(table.updatedAt),
+    fingerprintIdx: index('checkout_payment_sessions_fingerprint_idx').on(
+      table.checkoutSessionId,
+      table.revalidationFingerprint,
+      table.updatedAt,
+    ),
+    providerIntentUq: uniqueIndex('checkout_payment_sessions_provider_intent_uq').on(
+      table.provider,
+      table.providerPaymentIntentId,
+    ),
+  }),
+)
+
+export const bookingRuns = dbTable(
+  'booking_runs',
+  {
+    id: text('id').primaryKey(),
+    checkoutSessionId: text('checkout_session_id')
+      .notNull()
+      .references(() => checkoutSessions.id, { onDelete: 'cascade' }),
+    paymentSessionId: text('payment_session_id')
+      .notNull()
+      .references(() => checkoutPaymentSessions.id, { onDelete: 'cascade' }),
+    status: bookingRunStatusEnum('status').notNull().default('pending'),
+    executionKey: text('execution_key').notNull(),
+    summaryJson: jsonb('summary_json').$type<Record<string, unknown>>(),
+    startedAt: timestamp('started_at', { withTimezone: true }),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
+    createdAt: createdAtColumn(),
+    updatedAt: updatedAtColumn(),
+  },
+  (table) => ({
+    checkoutIdx: index('booking_runs_checkout_idx').on(table.checkoutSessionId),
+    paymentIdx: index('booking_runs_payment_idx').on(table.paymentSessionId),
+    statusIdx: index('booking_runs_status_idx').on(table.status),
+    executionKeyUq: uniqueIndex('booking_runs_execution_key_uq').on(
+      table.executionKey,
+    ),
+    checkoutUpdatedIdx: index('booking_runs_checkout_updated_idx').on(
+      table.checkoutSessionId,
+      table.updatedAt,
+    ),
+  }),
+)
+
+export const bookingItemExecutions = dbTable(
+  'booking_item_executions',
+  {
+    id: text('id').primaryKey(),
+    bookingRunId: text('booking_run_id')
+      .notNull()
+      .references(() => bookingRuns.id, { onDelete: 'cascade' }),
+    checkoutItemKey: text('checkout_item_key').notNull(),
+    tripItemId: bigint('trip_item_id', { mode: 'number' }),
+    title: text('title').notNull(),
+    vertical: tripItemTypeEnum('vertical').notNull(),
+    provider: text('provider'),
+    status: bookingItemExecutionStatusEnum('status').notNull().default('pending'),
+    providerBookingReference: text('provider_booking_reference'),
+    providerConfirmationCode: text('provider_confirmation_code'),
+    requestSnapshotJson: jsonb('request_snapshot_json')
+      .$type<Record<string, unknown>>()
+      .default(sql`'{}'::jsonb`),
+    responseSnapshotJson: jsonb('response_snapshot_json')
+      .$type<Record<string, unknown>>()
+      .default(sql`'{}'::jsonb`),
+    errorCode: text('error_code'),
+    errorMessage: text('error_message'),
+    startedAt: timestamp('started_at', { withTimezone: true }),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
+    createdAt: createdAtColumn(),
+    updatedAt: updatedAtColumn(),
+  },
+  (table) => ({
+    bookingRunIdx: index('booking_item_executions_booking_run_idx').on(
+      table.bookingRunId,
+    ),
+    statusIdx: index('booking_item_executions_status_idx').on(table.status),
+    checkoutItemKeyUq: uniqueIndex(
+      'booking_item_executions_run_checkout_item_key_uq',
+    ).on(table.bookingRunId, table.checkoutItemKey),
+    tripItemIdx: index('booking_item_executions_trip_item_idx').on(table.tripItemId),
+  }),
+)
+
+export const bookingConfirmations = dbTable(
+  'booking_confirmations',
+  {
+    id: text('id').primaryKey(),
+    publicRef: varchar('public_ref', { length: 32 }).notNull(),
+    tripId: bigint('trip_id', { mode: 'number' })
+      .notNull()
+      .references(() => trips.id, { onDelete: 'cascade' }),
+    checkoutSessionId: text('checkout_session_id')
+      .notNull()
+      .references(() => checkoutSessions.id, { onDelete: 'cascade' }),
+    paymentSessionId: text('payment_session_id')
+      .notNull()
+      .references(() => checkoutPaymentSessions.id, { onDelete: 'cascade' }),
+    bookingRunId: text('booking_run_id')
+      .notNull()
+      .references(() => bookingRuns.id, { onDelete: 'cascade' }),
+    status: bookingConfirmationStatusEnum('status').notNull().default('pending'),
+    currency: varchar('currency', { length: 3 }),
+    totalsJson: jsonb('totals_json')
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    summaryJson: jsonb('summary_json').$type<Record<string, unknown>>(),
+    confirmedAt: timestamp('confirmed_at', { withTimezone: true }),
+    createdAt: createdAtColumn(),
+    updatedAt: updatedAtColumn(),
+  },
+  (table) => ({
+    publicRefUq: uniqueIndex('booking_confirmations_public_ref_uq').on(
+      table.publicRef,
+    ),
+    tripIdx: index('booking_confirmations_trip_idx').on(table.tripId),
+    checkoutIdx: index('booking_confirmations_checkout_idx').on(
+      table.checkoutSessionId,
+    ),
+    paymentIdx: index('booking_confirmations_payment_idx').on(
+      table.paymentSessionId,
+    ),
+    bookingRunUq: uniqueIndex('booking_confirmations_booking_run_id_uq').on(
+      table.bookingRunId,
+    ),
+    statusIdx: index('booking_confirmations_status_idx').on(table.status),
+  }),
+)
+
+export const bookingConfirmationItems = dbTable(
+  'booking_confirmation_items',
+  {
+    id: text('id').primaryKey(),
+    confirmationId: text('confirmation_id')
+      .notNull()
+      .references(() => bookingConfirmations.id, { onDelete: 'cascade' }),
+    bookingItemExecutionId: text('booking_item_execution_id')
+      .notNull()
+      .references(() => bookingItemExecutions.id, { onDelete: 'cascade' }),
+    checkoutItemKey: text('checkout_item_key').notNull(),
+    vertical: tripItemTypeEnum('vertical').notNull(),
+    status: confirmationItemStatusEnum('status').notNull().default('pending'),
+    title: text('title').notNull(),
+    subtitle: text('subtitle'),
+    startAt: timestamp('start_at', { withTimezone: true }),
+    endAt: timestamp('end_at', { withTimezone: true }),
+    locationSummary: text('location_summary'),
+    provider: text('provider'),
+    providerBookingReference: text('provider_booking_reference'),
+    providerConfirmationCode: text('provider_confirmation_code'),
+    detailsJson: jsonb('details_json').$type<Record<string, unknown>>(),
+    createdAt: createdAtColumn(),
+    updatedAt: updatedAtColumn(),
+  },
+  (table) => ({
+    confirmationIdx: index('booking_confirmation_items_confirmation_idx').on(
+      table.confirmationId,
+    ),
+    bookingItemExecutionUq: uniqueIndex(
+      'booking_confirmation_items_booking_item_execution_id_uq',
+    ).on(table.bookingItemExecutionId),
+    checkoutItemKeyIdx: index(
+      'booking_confirmation_items_checkout_item_key_idx',
+    ).on(table.checkoutItemKey),
+    statusIdx: index('booking_confirmation_items_status_idx').on(table.status),
+  }),
+)
+
+export const itineraries = dbTable(
+  'itineraries',
+  {
+    id: text('id').primaryKey(),
+    publicRef: varchar('public_ref', { length: 32 }).notNull(),
+    tripId: bigint('trip_id', { mode: 'number' }).references(() => trips.id, {
+      onDelete: 'restrict',
+    }),
+    checkoutSessionId: text('checkout_session_id')
+      .notNull()
+      .references(() => checkoutSessions.id, { onDelete: 'restrict' }),
+    paymentSessionId: text('payment_session_id')
+      .notNull()
+      .references(() => checkoutPaymentSessions.id, { onDelete: 'restrict' }),
+    bookingRunId: text('booking_run_id')
+      .notNull()
+      .references(() => bookingRuns.id, { onDelete: 'restrict' }),
+    confirmationId: text('confirmation_id')
+      .notNull()
+      .references(() => bookingConfirmations.id, { onDelete: 'restrict' }),
+    status: itineraryStatusEnum('status').notNull().default('active'),
+    currency: varchar('currency', { length: 3 }),
+    summaryJson: jsonb('summary_json')
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    ownerUserId: text('owner_user_id'),
+    ownerSessionId: text('owner_session_id'),
+    createdAt: createdAtColumn(),
+    updatedAt: updatedAtColumn(),
+  },
+  (table) => ({
+    publicRefUq: uniqueIndex('itineraries_public_ref_uq').on(table.publicRef),
+    confirmationUq: uniqueIndex('itineraries_confirmation_id_uq').on(
+      table.confirmationId,
+    ),
+    tripIdx: index('itineraries_trip_idx').on(table.tripId),
+    checkoutIdx: index('itineraries_checkout_idx').on(table.checkoutSessionId),
+    paymentIdx: index('itineraries_payment_idx').on(table.paymentSessionId),
+    bookingRunIdx: index('itineraries_booking_run_idx').on(table.bookingRunId),
+    statusIdx: index('itineraries_status_idx').on(table.status),
+    ownerUserIdx: index('itineraries_owner_user_idx').on(table.ownerUserId),
+    ownerSessionIdx: index('itineraries_owner_session_idx').on(
+      table.ownerSessionId,
+    ),
+  }),
+)
+
+export const itineraryItems = dbTable(
+  'itinerary_items',
+  {
+    id: text('id').primaryKey(),
+    itineraryId: text('itinerary_id')
+      .notNull()
+      .references(() => itineraries.id, { onDelete: 'cascade' }),
+    confirmationItemId: text('confirmation_item_id')
+      .notNull()
+      .references(() => bookingConfirmationItems.id, { onDelete: 'restrict' }),
+    bookingItemExecutionId: text('booking_item_execution_id')
+      .notNull()
+      .references(() => bookingItemExecutions.id, { onDelete: 'restrict' }),
+    checkoutItemKey: text('checkout_item_key').notNull(),
+    vertical: tripItemTypeEnum('vertical').notNull(),
+    status: itineraryItemStatusEnum('status').notNull().default('confirmed'),
+    canonicalEntityId: bigint('canonical_entity_id', { mode: 'number' }),
+    canonicalBookableEntityId: bigint('canonical_bookable_entity_id', {
+      mode: 'number',
+    }),
+    canonicalInventoryId: text('canonical_inventory_id'),
+    provider: text('provider'),
+    providerBookingReference: text('provider_booking_reference'),
+    providerConfirmationCode: text('provider_confirmation_code'),
+    title: text('title').notNull(),
+    subtitle: text('subtitle'),
+    startAt: timestamp('start_at', { withTimezone: true }),
+    endAt: timestamp('end_at', { withTimezone: true }),
+    locationSummary: text('location_summary'),
+    detailsJson: jsonb('details_json').$type<Record<string, unknown>>(),
+    createdAt: createdAtColumn(),
+    updatedAt: updatedAtColumn(),
+  },
+  (table) => ({
+    itineraryIdx: index('itinerary_items_itinerary_idx').on(table.itineraryId),
+    confirmationItemUq: uniqueIndex('itinerary_items_confirmation_item_id_uq').on(
+      table.confirmationItemId,
+    ),
+    bookingItemExecutionIdx: index(
+      'itinerary_items_booking_item_execution_idx',
+    ).on(table.bookingItemExecutionId),
+    checkoutItemKeyIdx: index('itinerary_items_checkout_item_key_idx').on(
+      table.checkoutItemKey,
+    ),
+    statusIdx: index('itinerary_items_status_idx').on(table.status),
+    canonicalInventoryIdx: index('itinerary_items_canonical_inventory_idx').on(
+      table.canonicalInventoryId,
+    ),
+  }),
+)
+
+export const itineraryOwnerships = dbTable(
+  'itinerary_ownerships',
+  {
+    id: text('id').primaryKey(),
+    itineraryId: text('itinerary_id')
+      .notNull()
+      .references(() => itineraries.id, { onDelete: 'cascade' }),
+    ownershipMode: itineraryOwnershipModeEnum('ownership_mode')
+      .notNull()
+      .default('anonymous'),
+    ownerUserId: text('owner_user_id'),
+    ownerSessionId: text('owner_session_id'),
+    ownerClaimTokenHash: text('owner_claim_token_hash'),
+    source: itineraryOwnershipSourceEnum('source')
+      .notNull()
+      .default('confirmation_flow'),
+    claimedAt: timestamp('claimed_at', { withTimezone: true }),
+    createdAt: createdAtColumn(),
+    updatedAt: updatedAtColumn(),
+  },
+  (table) => ({
+    itineraryUq: uniqueIndex('itinerary_ownerships_itinerary_id_uq').on(
+      table.itineraryId,
+    ),
+    ownershipModeIdx: index('itinerary_ownerships_mode_idx').on(
+      table.ownershipMode,
+    ),
+    ownerUserIdx: index('itinerary_ownerships_owner_user_idx').on(
+      table.ownerUserId,
+    ),
+    ownerSessionIdx: index('itinerary_ownerships_owner_session_idx').on(
+      table.ownerSessionId,
+    ),
+    claimTokenHashIdx: index('itinerary_ownerships_claim_token_hash_idx').on(
+      table.ownerClaimTokenHash,
+    ),
+    sourceIdx: index('itinerary_ownerships_source_idx').on(table.source),
+  }),
+)
+
+export const notifications = dbTable(
+  'notifications',
+  {
+    id: text('id').primaryKey(),
+    eventType: notificationEventTypeEnum('event_type').notNull(),
+    channel: notificationChannelEnum('channel').notNull().default('email'),
+    provider: notificationProviderEnum('provider').notNull().default('resend'),
+    status: notificationStatusEnum('status').notNull().default('draft'),
+    recipientJson: jsonb('recipient_json')
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    subject: text('subject').notNull(),
+    payloadJson: jsonb('payload_json')
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    providerMessageId: text('provider_message_id'),
+    providerMetadataJson: jsonb('provider_metadata_json')
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    dedupeKey: text('dedupe_key'),
+    relatedConfirmationId: text('related_confirmation_id').references(
+      () => bookingConfirmations.id,
+      { onDelete: 'set null' },
+    ),
+    relatedItineraryId: text('related_itinerary_id').references(
+      () => itineraries.id,
+      { onDelete: 'set null' },
+    ),
+    relatedCheckoutSessionId: text('related_checkout_session_id').references(
+      () => checkoutSessions.id,
+      { onDelete: 'set null' },
+    ),
+    sentAt: timestamp('sent_at', { withTimezone: true }),
+    deliveredAt: timestamp('delivered_at', { withTimezone: true }),
+    failedAt: timestamp('failed_at', { withTimezone: true }),
+    failureMessage: text('failure_message'),
+    skipReason: text('skip_reason'),
+    createdAt: createdAtColumn(),
+    updatedAt: updatedAtColumn(),
+  },
+  (table) => ({
+    eventTypeIdx: index('notifications_event_type_idx').on(table.eventType),
+    statusIdx: index('notifications_status_idx').on(table.status),
+    providerIdx: index('notifications_provider_idx').on(table.provider),
+    dedupeKeyUq: uniqueIndex('notifications_dedupe_key_uq').on(table.dedupeKey),
+    confirmationIdx: index('notifications_confirmation_idx').on(
+      table.relatedConfirmationId,
+    ),
+    itineraryIdx: index('notifications_itinerary_idx').on(table.relatedItineraryId),
+    checkoutIdx: index('notifications_checkout_idx').on(
+      table.relatedCheckoutSessionId,
+    ),
+    sentIdx: index('notifications_sent_idx').on(table.sentAt),
+    createdIdx: index('notifications_created_idx').on(table.createdAt),
+  }),
+)
+
 export const countriesRelations = relations(countries, ({ many }) => ({
   regions: many(regions),
   cities: many(cities),
@@ -1022,6 +1689,8 @@ export const tripsRelations = relations(trips, ({ one, many }) => ({
     references: [tripDates.tripId],
   }),
   items: many(tripItems),
+  checkoutSessions: many(checkoutSessions),
+  itineraries: many(itineraries),
 }))
 
 export const tripDatesRelations = relations(tripDates, ({ one }) => ({
@@ -1077,3 +1746,192 @@ export const tripItemInventorySnapshotsRelations = relations(
     }),
   }),
 )
+
+export const checkoutSessionsRelations = relations(checkoutSessions, ({ one, many }) => ({
+  trip: one(trips, {
+    fields: [checkoutSessions.tripId],
+    references: [trips.id],
+  }),
+  travelerProfiles: many(checkoutTravelerProfiles),
+  travelerAssignments: many(checkoutTravelerAssignments),
+  paymentSessions: many(checkoutPaymentSessions),
+  bookingRuns: many(bookingRuns),
+  itineraries: many(itineraries),
+  notifications: many(notifications),
+}))
+
+export const checkoutTravelerProfilesRelations = relations(
+  checkoutTravelerProfiles,
+  ({ one, many }) => ({
+    checkoutSession: one(checkoutSessions, {
+      fields: [checkoutTravelerProfiles.checkoutSessionId],
+      references: [checkoutSessions.id],
+    }),
+    assignments: many(checkoutTravelerAssignments),
+  }),
+)
+
+export const checkoutTravelerAssignmentsRelations = relations(
+  checkoutTravelerAssignments,
+  ({ one }) => ({
+    checkoutSession: one(checkoutSessions, {
+      fields: [checkoutTravelerAssignments.checkoutSessionId],
+      references: [checkoutSessions.id],
+    }),
+    travelerProfile: one(checkoutTravelerProfiles, {
+      fields: [checkoutTravelerAssignments.travelerProfileId],
+      references: [checkoutTravelerProfiles.id],
+    }),
+  }),
+)
+
+export const checkoutPaymentSessionsRelations = relations(
+  checkoutPaymentSessions,
+  ({ one, many }) => ({
+    checkoutSession: one(checkoutSessions, {
+      fields: [checkoutPaymentSessions.checkoutSessionId],
+      references: [checkoutSessions.id],
+    }),
+    bookingRuns: many(bookingRuns),
+    itineraries: many(itineraries),
+  }),
+)
+
+export const bookingRunsRelations = relations(bookingRuns, ({ one, many }) => ({
+  checkoutSession: one(checkoutSessions, {
+    fields: [bookingRuns.checkoutSessionId],
+    references: [checkoutSessions.id],
+  }),
+  paymentSession: one(checkoutPaymentSessions, {
+    fields: [bookingRuns.paymentSessionId],
+    references: [checkoutPaymentSessions.id],
+  }),
+  itemExecutions: many(bookingItemExecutions),
+  itineraries: many(itineraries),
+}))
+
+export const bookingItemExecutionsRelations = relations(
+  bookingItemExecutions,
+  ({ one, many }) => ({
+    bookingRun: one(bookingRuns, {
+      fields: [bookingItemExecutions.bookingRunId],
+      references: [bookingRuns.id],
+    }),
+    confirmationItems: many(bookingConfirmationItems),
+    itineraryItems: many(itineraryItems),
+  }),
+)
+
+export const bookingConfirmationsRelations = relations(
+  bookingConfirmations,
+  ({ one, many }) => ({
+    trip: one(trips, {
+      fields: [bookingConfirmations.tripId],
+      references: [trips.id],
+    }),
+    checkoutSession: one(checkoutSessions, {
+      fields: [bookingConfirmations.checkoutSessionId],
+      references: [checkoutSessions.id],
+    }),
+    paymentSession: one(checkoutPaymentSessions, {
+      fields: [bookingConfirmations.paymentSessionId],
+      references: [checkoutPaymentSessions.id],
+    }),
+    bookingRun: one(bookingRuns, {
+      fields: [bookingConfirmations.bookingRunId],
+      references: [bookingRuns.id],
+    }),
+    items: many(bookingConfirmationItems),
+    itinerary: one(itineraries, {
+      fields: [bookingConfirmations.id],
+      references: [itineraries.confirmationId],
+    }),
+    notifications: many(notifications),
+  }),
+)
+
+export const bookingConfirmationItemsRelations = relations(
+  bookingConfirmationItems,
+  ({ one }) => ({
+    confirmation: one(bookingConfirmations, {
+      fields: [bookingConfirmationItems.confirmationId],
+      references: [bookingConfirmations.id],
+    }),
+    bookingItemExecution: one(bookingItemExecutions, {
+      fields: [bookingConfirmationItems.bookingItemExecutionId],
+      references: [bookingItemExecutions.id],
+    }),
+  }),
+)
+
+export const itinerariesRelations = relations(itineraries, ({ one, many }) => ({
+  trip: one(trips, {
+    fields: [itineraries.tripId],
+    references: [trips.id],
+  }),
+  checkoutSession: one(checkoutSessions, {
+    fields: [itineraries.checkoutSessionId],
+    references: [checkoutSessions.id],
+  }),
+  paymentSession: one(checkoutPaymentSessions, {
+    fields: [itineraries.paymentSessionId],
+    references: [checkoutPaymentSessions.id],
+  }),
+  bookingRun: one(bookingRuns, {
+    fields: [itineraries.bookingRunId],
+    references: [bookingRuns.id],
+  }),
+  confirmation: one(bookingConfirmations, {
+    fields: [itineraries.confirmationId],
+    references: [bookingConfirmations.id],
+  }),
+  ownership: one(itineraryOwnerships, {
+    fields: [itineraries.id],
+    references: [itineraryOwnerships.itineraryId],
+  }),
+  items: many(itineraryItems),
+  notifications: many(notifications),
+}))
+
+export const itineraryItemsRelations = relations(
+  itineraryItems,
+  ({ one }) => ({
+    itinerary: one(itineraries, {
+      fields: [itineraryItems.itineraryId],
+      references: [itineraries.id],
+    }),
+    confirmationItem: one(bookingConfirmationItems, {
+      fields: [itineraryItems.confirmationItemId],
+      references: [bookingConfirmationItems.id],
+    }),
+    bookingItemExecution: one(bookingItemExecutions, {
+      fields: [itineraryItems.bookingItemExecutionId],
+      references: [bookingItemExecutions.id],
+    }),
+  }),
+)
+
+export const itineraryOwnershipsRelations = relations(
+  itineraryOwnerships,
+  ({ one }) => ({
+    itinerary: one(itineraries, {
+      fields: [itineraryOwnerships.itineraryId],
+      references: [itineraries.id],
+    }),
+  }),
+)
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  confirmation: one(bookingConfirmations, {
+    fields: [notifications.relatedConfirmationId],
+    references: [bookingConfirmations.id],
+  }),
+  itinerary: one(itineraries, {
+    fields: [notifications.relatedItineraryId],
+    references: [itineraries.id],
+  }),
+  checkoutSession: one(checkoutSessions, {
+    fields: [notifications.relatedCheckoutSessionId],
+    references: [checkoutSessions.id],
+  }),
+}))

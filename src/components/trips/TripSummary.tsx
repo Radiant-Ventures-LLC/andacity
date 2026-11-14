@@ -1,4 +1,6 @@
 import { component$ } from "@builder.io/qwik";
+import { BeginCheckoutButton } from "~/components/checkout/BeginCheckoutButton";
+import { TripCheckoutReadinessNotice } from "~/components/trips/TripCheckoutReadinessNotice";
 import type { TripPageSummaryModel } from "~/lib/trips/trip-page-model";
 
 export const TripSummary = component$(
@@ -71,7 +73,7 @@ export const TripSummary = component$(
         ) : null}
 
         <div class="mt-5 rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-muted,#f8fafc)] p-4">
-          <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="grid gap-4 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
             <div>
               <p class="text-sm font-semibold text-[color:var(--color-text-strong)]">
                 Manage this trip
@@ -80,9 +82,19 @@ export const TripSummary = component$(
                 Open the trip builder to update status, move items between
                 trips, or delete this plan.
               </p>
+              <div class="mt-4">
+                <TripCheckoutReadinessNotice
+                  readiness={summary.checkoutReadiness}
+                />
+              </div>
             </div>
 
-            <div class="flex flex-wrap gap-2">
+            <div class="flex flex-col items-start gap-3 lg:items-end">
+              <BeginCheckoutButton
+                tripId={summary.tripId}
+                disabled={!summary.checkoutReadiness.isReady}
+                helperText="Pricing and availability will be confirmed before payment."
+              />
               <a
                 href={summary.continueHref}
                 class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 text-sm font-medium text-[color:var(--color-text-strong)] hover:border-[color:var(--color-text-strong)]"

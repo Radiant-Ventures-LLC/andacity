@@ -2,19 +2,23 @@ import { component$ } from '@builder.io/qwik'
 
 export const ResultsHeader = component$((props: ResultsHeaderProps) => {
   return (
-    <header class="rounded-[var(--radius-xl)] border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface)] p-4 shadow-[var(--shadow-sm)] md:p-5">
-      <p class="text-xs font-semibold uppercase tracking-[0.08em] text-[color:var(--color-text-muted)]">
+    <header
+      class="overflow-hidden rounded-xl p-4 md:p-5"
+      style="background:var(--ui-surface);border:1px solid var(--ui-border);box-shadow:var(--ui-shadow-card)"
+    >
+      <p class="text-xs font-semibold uppercase tracking-[0.08em]" style="color:var(--ui-text-muted)">
         Results
       </p>
 
       <div class="mt-2 flex flex-wrap items-start justify-between gap-3">
-        <h2 class="text-balance text-xl font-semibold tracking-tight text-[color:var(--color-text-strong)] md:text-2xl">
+        <h2 class="max-w-[46rem] text-balance text-xl font-semibold tracking-tight md:text-2xl" style="color:var(--ui-text)">
           {props.querySummary}
         </h2>
 
         {props.editSearchHref ? (
           <a
-            class="inline-flex items-center rounded-full border border-[color:var(--color-border-default)] bg-[color:var(--color-surface-elevated)] px-3 py-1.5 text-xs font-medium text-[color:var(--color-text-strong)] transition hover:bg-white"
+            class="inline-flex items-center rounded-full px-3 py-1.5 text-xs font-medium transition"
+            style="background:var(--ui-surface-muted);border:1px solid var(--ui-border);color:var(--ui-text-muted)"
             href={props.editSearchHref}
           >
             {props.editSearchLabel || 'Edit search'}

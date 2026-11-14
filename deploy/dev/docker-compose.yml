@@ -1,0 +1,100 @@
+# Andacity dev/demo stack for dev.andacity.com
+#
+#   postgres     — local Postgres (data in the `pgdata` volume)
+#   app          — Fastify SSR server, reachable only on the compose network
+#   cloudflared  — Cloudflare Tunnel; the only ingress (gated by Cloudflare Access)
+#   tools        — one-off runner for migrations / seeding (profile: tools)
+#
+# Usage (from /opt/andacity/src on the server):
+#   docker compose -f deploy/dev/docker-compose.yml --env-file /opt/andacity/dev.env up -d --build
+#   docker compose -f deploy/dev/docker-compose.yml --env-file /opt/andacity/dev.env run --rm tools pnpm db:migrate
+#   docker compose -f deploy/dev/docker-compose.yml --env-file /opt/andacity/dev.env run --rm tools pnpm db:seed:120
+
+name: andacity-dev
+
+x-db-url: &db-url postgresql://andacity:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@postgres:5432/andacity?sslmode=disable
+
+services:
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    shm_size: 1g
+    environment:
+      POSTGRES_USER: andacity
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: andacity
+    # Tuned for a 2 vCPU / 12 GB box doing a ~40M-row bulk seed.
+    command:
+      - postgres
+      - -c
+      - shared_buffers=3GB
+      - -c
+      - effective_cache_size=8GB
+      - -c
+      - maintenance_work_mem=1GB
+      - -c
+      - work_mem=32MB
+      - -c
+      - max_wal_size=8GB
+      - -c
+      - checkpoint_timeout=15min
+      - -c
+      - wal_compression=on
+      - -c
+      - synchronous_commit=off
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U andacity -d andacity"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: ../..
+      dockerfile: deploy/dev/Dockerfile
+      target: runtime
+      args:
+        APP_ORIGIN: ${ORIGIN:-https://dev.andacity.com}
+    image: andacity-dev:latest
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: *db-url
+      DB_READS_ENABLED: "true"
+      DB_POOL_MAX: "10"
+      ORIGIN: ${ORIGIN:-https://dev.andacity.com}
+      PUBLIC_BASE_URL: ${ORIGIN:-https://dev.andacity.com}
+      OG_SIGNING_SECRET: ${OG_SIGNING_SECRET:?set OG_SIGNING_SECRET}
+      CONTACT_EMAIL: ${CONTACT_EMAIL:-hello@andacity.com}
+      PRIVACY_EMAIL: ${PRIVACY_EMAIL:-privacy@andacity.com}
+      LEGAL_EMAIL: ${LEGAL_EMAIL:-legal@andacity.com}
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:?set TUNNEL_TOKEN}
+    depends_on:
+      - app
+
+  tools:
+    profiles: ["tools"]
+    build:
+      context: ../..
+      dockerfile: deploy/dev/Dockerfile
+      target: tools
+    image: andacity-dev-tools:latest
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: *db-url
+    # Long seeds: run detached with `run -d` and follow with `docker logs -f`.
+
+volumes:
+  pgdata:

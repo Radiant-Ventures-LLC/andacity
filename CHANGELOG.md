@@ -1,5 +1,37 @@
 # 🪐 Andacity Travel — CHANGELOG
 
+## v0.7.0
+
+Released `2026-11-14`
+
+### Added
+- Checkout flow: trip → checkout transition, pre-checkout revalidation gate, checkout sessions
+- Payment layer with Stripe PaymentIntent adapters
+- Booking execution engine and provider booking adapters (flights, hotels, cars)
+- Booking confirmation pages, saved itinerary pages, and post-booking retrieval/resume
+- Anonymous itinerary ownership with claim tokens; ownership-aware My Trips dashboard
+- Traveler details capture and saved traveler profiles with checkout reuse
+- Booking and confirmation notifications (Resend adapter)
+- Unified booking-lifecycle error handling and recovery flow
+- Full UI redesign (CLAUDE-UI-001 → 051): new design system and tokens, every public surface redesigned, runtime theme switcher with light/dark support, Baseline palette and Ledger comparison surface
+- Analytics and error-monitoring integration
+- Fastify production server and Docker image
+- CI workflow (lint, type check, tests, production build)
+- MVP roadmap (`docs/ROADMAP.md`)
+
+### Fixed
+- API error responses no longer leak raw internal messages outside development
+- Seed data uses real airport time zones and UTC flight instants
+- Flights origin autofill no longer shows an error when location is unavailable
+- Hero stacking context, search overlay and vertical results blockers
+- Fastify v5 plugin alignment, origin handling and runtime dependency packaging
+
+### Removed
+- EC2 deploy workflows (that AWS infrastructure was retired; dev now deploys via `deploy/dev/redeploy.sh`)
+
+### Notes
+- Inventory is still served from seeded data; real supplier integration is Phase 1 of the roadmap
+
 ## v0.6.0
 
 Released `2026-03-17`

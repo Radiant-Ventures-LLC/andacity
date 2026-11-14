@@ -21,11 +21,19 @@ export const ResultsControlBar = component$((props: ResultsControlBarProps) => {
       class={["sticky z-20", props.class]}
       style={{ top: "var(--sticky-top-offset)" }}
     >
-      <div class="rounded-[var(--radius-xl)] border border-[color:var(--color-border-subtle)] bg-[color:rgba(255,255,255,0.92)] shadow-[var(--shadow-sm)] backdrop-blur">
+      <div
+        class="rounded-xl backdrop-blur"
+        style="background:var(--ui-surface);border:1px solid var(--ui-border);box-shadow:var(--ui-shadow-panel)"
+      >
         <div class="flex flex-col gap-3 p-3 md:p-4">
           <div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-            <div class="flex flex-wrap items-center gap-2 text-sm font-medium text-[color:var(--color-text)]">
-              <span>{props.resultCountLabel}</span>
+            <div class="flex flex-wrap items-center gap-2 text-sm font-medium">
+              <span
+                class="rounded-full px-3 py-1.5 text-white"
+                style="background:var(--ui-primary);box-shadow:0 8px 18px rgba(0,0,0,0.14)"
+              >
+                {props.resultCountLabel}
+              </span>
               {props.busy ? (
                 <AsyncInlineSpinner compact={true} label="Updating" />
               ) : null}
@@ -35,7 +43,8 @@ export const ResultsControlBar = component$((props: ResultsControlBarProps) => {
               {props.onToggleFilters$ ? (
                 <button
                   type="button"
-                  class="inline-flex items-center gap-2 rounded-full border border-[color:var(--color-border-default)] bg-[color:var(--color-surface-elevated)] px-3 py-2 text-sm font-medium text-[color:var(--color-text)] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+                  class="inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60"
+                  style="background:var(--ui-surface-muted);border:1px solid var(--ui-border);color:var(--ui-text);box-shadow:var(--ui-shadow-card)"
                   disabled={props.disabled}
                   onClick$={() => {
                     if (props.telemetry) {
@@ -52,7 +61,10 @@ export const ResultsControlBar = component$((props: ResultsControlBarProps) => {
                 >
                   <span>Filters</span>
                   {activeFilterCount ? (
-                    <span class="rounded-full bg-[color:var(--color-primary-50)] px-2 py-0.5 text-xs text-[color:var(--color-action)]">
+                    <span
+                      class="rounded-full px-2 py-0.5 text-xs text-white"
+                      style="background:var(--ui-primary)"
+                    >
                       {activeFilterCount}
                     </span>
                   ) : null}
@@ -74,11 +86,12 @@ export const ResultsControlBar = component$((props: ResultsControlBarProps) => {
                   aria-disabled={props.disabled || undefined}
                   tabIndex={props.disabled ? -1 : undefined}
                   class={[
-                    "inline-flex items-center rounded-full border border-[color:var(--color-border-default)] px-3 py-2 text-sm font-medium text-[color:var(--color-text-muted)] transition hover:bg-white hover:text-[color:var(--color-text)]",
+                    "inline-flex items-center rounded-full px-3 py-2 text-sm font-medium transition",
                     props.disabled
                       ? "pointer-events-none cursor-not-allowed opacity-60"
                       : null,
                   ]}
+                  style="background:var(--ui-surface-muted);border:1px solid var(--ui-border);color:var(--ui-text-muted);box-shadow:var(--ui-shadow-card)"
                 >
                   Clear all
                 </a>
@@ -86,13 +99,15 @@ export const ResultsControlBar = component$((props: ResultsControlBarProps) => {
 
               <label
                 for={props.sortId}
-                class="text-xs font-medium text-[color:var(--color-text-subtle)]"
+                class="text-xs font-medium"
+                style="color:var(--ui-text-muted)"
               >
                 Sort
               </label>
               <select
                 id={props.sortId}
-                class="min-w-[11rem] rounded-xl border border-[color:var(--color-border)] bg-white px-3 py-2 text-sm outline-none focus-visible:shadow-[var(--ring-focus)]"
+                class="min-w-[11rem] rounded-xl px-3 py-2 text-sm outline-none"
+                style="background:var(--ui-surface);border:1px solid var(--ui-border);color:var(--ui-text);box-shadow:var(--ui-shadow-card)"
                 disabled={props.disabled}
                 value={activeSortValue}
                 onChange$={(event) => {
@@ -152,15 +167,16 @@ export const ResultsControlBar = component$((props: ResultsControlBarProps) => {
                   aria-disabled={props.disabled || undefined}
                   tabIndex={props.disabled ? -1 : undefined}
                   class={[
-                    "inline-flex items-center gap-2 rounded-full border border-[color:var(--color-border-default)] bg-[color:var(--color-surface)] px-3 py-1.5 text-xs font-medium text-[color:var(--color-text)] transition hover:bg-white",
+                    "inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium transition",
                     props.disabled
                       ? "pointer-events-none cursor-not-allowed opacity-60"
                       : null,
                   ]}
+                  style="background:var(--ui-surface-muted);border:1px solid var(--ui-border);color:var(--ui-text);box-shadow:var(--ui-shadow-card)"
                   aria-label={`Remove ${chip.label}`}
                 >
                   <span>{chip.label}</span>
-                  <span aria-hidden="true" class="text-[color:var(--color-text-muted)]">
+                  <span aria-hidden="true" style="color:var(--ui-text-muted)">
                     ×
                   </span>
                 </a>
