@@ -12,6 +12,8 @@ export type FlightSegmentSummary = {
   departureAt: string | null;
   arrivalAt: string | null;
   durationMinutes: number | null;
+  /** 0 = outbound, 1 = return (round trips). Absent for single-slice itineraries. */
+  sliceIndex?: number | null;
 };
 
 export type FlightPolicySummary = {

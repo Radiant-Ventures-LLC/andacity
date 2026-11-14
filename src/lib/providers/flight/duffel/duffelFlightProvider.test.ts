@@ -238,6 +238,16 @@ test('flight keys encode every segment and round-trip return dates', () => {
   const key = buildDuffelFlightKey(roundTrip, '2026-12-17')
   assert.equal(key, 'AA100BA178R20261217BA213')
   assert.equal(readReturnDateFromFlightKey(key!), '2026-12-17')
+  const mappedRoundTrip = mapDuffelOfferToRawOffer(roundTrip, {
+    departDate: '2026-12-10',
+    returnDate: '2026-12-17',
+    passengers: 1,
+    snapshotTimestamp: 'now',
+  })
+  assert.equal(mappedRoundTrip?.itineraryType, 'round-trip')
+  assert.equal(mappedRoundTrip?.stops, 1)
+  assert.equal(mappedRoundTrip?.destinationCode, 'LHR')
+  assert.deepEqual(mappedRoundTrip?.segments.map((s) => s.sliceIndex), [0, 0, 1])
   assert.equal(readReturnDateFromFlightKey('AA100BA178'), null)
   // An "R" carrier code next to digits must not read as a return date.
   assert.equal(readReturnDateFromFlightKey('FR1234R31234'), null)
@@ -360,6 +370,9 @@ test('duffel adapter search yields canonical entities that resolve back to the s
   assert.ok(resolved)
   assert.equal(resolved.inventoryId, connecting.inventoryId)
   assert.equal(resolved.vertical, 'flight')
+  // Duffel doesn't report seat counts: unknown must stay unknown, not "0 seats left".
+  assert.equal(resolved.payload.policy?.seatsRemaining, null)
+  assert.equal(resolved.payload.policy?.checkedBagsIncluded, 1)
 
   const price = await adapter.fetchPrice(connecting.inventoryId)
   assert.deepEqual(price, { currency: 'USD', amount: 612.4 })

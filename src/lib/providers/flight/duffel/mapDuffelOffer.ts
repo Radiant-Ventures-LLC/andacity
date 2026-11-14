@@ -120,8 +120,10 @@ const minutesBetween = (fromIso: string | null, toIso: string | null) => {
 // ---------------------------------------------------------------------------
 
 const toSegmentSummaries = (offer: DuffelOffer): FlightSegmentSummary[] => {
-  const segments = offer.slices.flatMap((slice) => slice.segments)
-  return segments.map((segment, index) => {
+  const segments = offer.slices.flatMap((slice, sliceIndex) =>
+    slice.segments.map((segment) => ({ segment, sliceIndex })),
+  )
+  return segments.map(({ segment, sliceIndex }, index) => {
     const departureAt = localTimeToUtcIso(segment.departing_at, segment.origin?.time_zone)
     const arrivalAt = localTimeToUtcIso(segment.arriving_at, segment.destination?.time_zone)
     return {
@@ -137,6 +139,7 @@ const toSegmentSummaries = (offer: DuffelOffer): FlightSegmentSummary[] => {
       arrivalAt,
       durationMinutes:
         parseIsoDurationMinutes(segment.duration) ?? minutesBetween(departureAt, arrivalAt),
+      sliceIndex,
     }
   })
 }

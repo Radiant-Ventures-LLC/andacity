@@ -22,6 +22,8 @@ const toNullableText = (value: unknown) => {
 }
 
 const toFiniteInteger = (value: unknown) => {
+  // null/undefined/'' mean "unknown"; Number(null) would otherwise read as 0.
+  if (value == null || value === '') return null
   const parsed = typeof value === 'number' ? value : Number(value)
   if (!Number.isFinite(parsed)) return null
   return Math.round(parsed)

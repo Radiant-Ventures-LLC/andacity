@@ -207,6 +207,12 @@ const readEntitySegments = (entity: FlightBookableEntity) => {
   ];
 };
 
+const readOutboundSegments = (entity: FlightBookableEntity) => {
+  const segments = readEntitySegments(entity);
+  const outbound = segments.filter((segment) => (segment.sliceIndex ?? 0) === 0);
+  return outbound.length ? outbound : segments;
+};
+
 type FlightAirportLookup = Record<string, CanonicalLocation | null | undefined>;
 
 const resolveAirportLocation = (
@@ -267,7 +273,7 @@ const buildFlightEntityTitle = (
   entity: FlightBookableEntity,
   airportLookup: FlightAirportLookup | undefined,
 ) => {
-  const segments = readEntitySegments(entity);
+  const segments = readOutboundSegments(entity);
   const firstSegment = segments[0];
   const lastSegment = segments[segments.length - 1];
   const departureLocation = resolveAirportLocation(
@@ -304,7 +310,9 @@ const buildSummaryModel = (
   routeDate: string | null,
   airportLookup?: FlightAirportLookup,
 ): FlightEntitySummaryModel => {
-  const segments = readEntitySegments(entity);
+  // The summary describes the outbound journey; return segments (round trips)
+  // are listed in the segment timeline.
+  const segments = readOutboundSegments(entity);
   const firstSegment = segments[0];
   const lastSegment = segments[segments.length - 1];
   const departureAirport =
@@ -363,14 +371,19 @@ const buildSegmentModels = (
     const flightNumber = toText(segment.flightNumber);
     const operatingAirline = toText(segment.operatingCarrier);
     const marketingAirline = toText(segment.marketingCarrier) || operatingAirline;
-    const layoverMinutes = next
+    const sliceIndex = segment.sliceIndex ?? 0;
+    const startsNewSlice = next ? (next.sliceIndex ?? 0) !== sliceIndex : false;
+    const positionInSlice =
+      segments.slice(0, index).filter((other) => (other.sliceIndex ?? 0) === sliceIndex).length + 1;
+    const layoverMinutes = next && !startsNewSlice
       ? diffMinutes(segment.arrivalAt, next.departureAt)
       : null;
     const layoverAirport = toText(segment.destinationCode);
 
     return {
       id: `${entity.inventoryId}:segment:${index + 1}`,
-      segmentLabel: `Segment ${(segment.segmentOrder ?? index) + 1}`,
+      segmentLabel:
+        sliceIndex > 0 ? `Return · Segment ${positionInSlice}` : `Segment ${positionInSlice}`,
       flightNumberLabel:
         [airlineCode, flightNumber].filter((value): value is string => Boolean(value)).join(" ") ||
         "Flight number unavailable",
@@ -395,7 +408,7 @@ const buildSegmentModels = (
       durationLabel:
         formatDurationLabel(segment.durationMinutes ?? diffMinutes(segment.departureAt, segment.arrivalAt)),
       layoverAfterLabel:
-        next && layoverMinutes != null
+        next && !startsNewSlice && layoverMinutes != null
           ? `Layover ${formatDurationLabel(layoverMinutes)} in ${layoverAirport || "connection airport"}`
           : null,
     };
