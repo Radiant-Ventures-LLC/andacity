@@ -76,7 +76,7 @@ Goal: one trunk, green CI, an honest baseline.
 - [x] Fix the `AGENTS.md` database guidance so it matches the current environment, and point `package.json` repo URLs at `Radiant-Ventures-LLC/andacity`.
 - [ ] Prune merged or abandoned `feature/new-ui-ux--*` branches.
 
-**Exit:** `main` = v0.7.0, CI green, dev.andacity.com deployed from `main`.
+**Exit:** `main` = v0.7.0, CI green, dev.andacity.com deployed from `main`. ✅ Met 2026-11-14: 0.7.1 is deployed from `main`, and live search and the search API were smoke-tested.
 
 ### Phase 1: Real inventory (≈3–5 weeks)
 
