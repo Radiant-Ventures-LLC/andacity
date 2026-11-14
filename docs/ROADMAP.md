@@ -69,7 +69,8 @@ Goal: one trunk, green CI, an honest baseline.
   - `minimatch` 7–10 (moderate): lint toolchain only; fixed by a typescript-eslint upgrade.
   - `esbuild` ≤0.24.2 (moderate): `drizzle-kit`'s dev-time loader only.
 - [ ] Bump the GitHub Actions versions off Node 20 before the runners drop it.
-- [ ] Finish the canonical search-route consolidation and delete the legacy live search routes.
+- [x] Finish the canonical search-route consolidation. The legacy `/search/*` and `/cars/search/*` routes were already thin redirects to canonical routes; the unreachable legacy search stack (old query modules, mappers, results/filter/compare components, ~4.4k lines) is deleted.
+- [ ] Dead-code pass on the rest of the files no route reaches (explore intent mappers, email components, small booking/ownership predicates). Decide whether each one is wired up later or deleted.
 - [x] Delete the stale `CLAUDE-UI-051-baseline-ledger.patch`.
 - [ ] Move the obsolete AWS launch-gate reports to `docs/archive/`.
 - [ ] Fix the `AGENTS.md` database guidance so it matches the current environment.
