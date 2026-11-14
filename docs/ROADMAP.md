@@ -1,6 +1,6 @@
 # Andacity Roadmap to MVP
 
-_Last updated: 2026-11-13_
+_Last updated: 2026-11-14_
 
 ## Where we are
 
@@ -61,11 +61,14 @@ The provider-adapter and booking-adapter interfaces were built for this kind of 
 
 Goal: one trunk, green CI, an honest baseline.
 
-- [ ] Fix the 3 failing search error-sanitization tests.
-- [ ] Merge `feat/baseline-ledger` → `dev` → `main` and tag **v0.7.0** (the UI redesign release). Update the CHANGELOG and README.
-- [ ] CI on every PR: `pnpm test`, `lint`, `build.types` and `build`.
+- [x] Fix the 3 failing search error-sanitization tests (`b18fb1d`; raw API errors are now exposed only in development).
+- [x] Merge `feat/baseline-ledger` → `dev` → `main` and tag **0.7.0**, with CHANGELOG, RELEASENOTES and README updated (2026-11-14).
+- [x] CI on every PR and on pushes to `main` and `dev`: `pnpm test`, `lint`, `build.types` and `build`. The dead EC2 deploy workflows are removed.
+- [ ] Triage the dependency vulnerabilities Dependabot reports (189 at release: 2 critical, 94 high).
+- [ ] Bump the GitHub Actions versions off Node 20 before the runners drop it.
 - [ ] Finish the canonical search-route consolidation and delete the legacy live search routes.
-- [ ] Delete the stale `CLAUDE-UI-051-baseline-ledger.patch` (already committed as `9b0755b`). Move the obsolete AWS launch-gate reports to `docs/archive/`.
+- [x] Delete the stale `CLAUDE-UI-051-baseline-ledger.patch`.
+- [ ] Move the obsolete AWS launch-gate reports to `docs/archive/`.
 - [ ] Fix the `AGENTS.md` database guidance so it matches the current environment.
 - [ ] Prune merged or abandoned `feature/new-ui-ux--*` branches.
 
