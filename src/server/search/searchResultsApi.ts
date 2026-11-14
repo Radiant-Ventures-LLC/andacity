@@ -139,16 +139,20 @@ const getLocationValidationMessage = (
   return 'Search locations must reference supported airport codes.'
 }
 
-const toExecutionFailure = (error?: unknown): SearchResultsApiHttpResponse => ({
-  status: 500,
-  body: {
-    ok: false,
-    error: {
-      code: 'SEARCH_EXECUTION_FAILED',
-      message: readApiErrorMessage(error, SEARCH_EXECUTION_FAILED_MESSAGE),
+const toExecutionFailure = (error?: unknown): SearchResultsApiHttpResponse => {
+  if (error) console.error('[search-api] search execution failed', error)
+
+  return {
+    status: 500,
+    body: {
+      ok: false,
+      error: {
+        code: 'SEARCH_EXECUTION_FAILED',
+        message: readApiErrorMessage(error, SEARCH_EXECUTION_FAILED_MESSAGE),
+      },
     },
-  },
-})
+  }
+}
 
 const toValidationError = (
   code: SearchResultsApiErrorCode,

@@ -52,10 +52,19 @@ export const sendJson = (
   send(status, JSON.stringify(body));
 };
 
+// Raw error messages (DB, provider, stack causes) are only surfaced to clients
+// in local development; everywhere else clients get the safe fallback and the
+// detail goes to the server log.
+const exposeErrorDetails = () => process.env.NODE_ENV === "development";
+
 export const readApiErrorMessage = (
   error: unknown,
   fallbackMessage: string,
 ) => {
+  if (!exposeErrorDetails()) {
+    return fallbackMessage;
+  }
+
   const nestedCauseMessage = readNestedCauseMessage(error);
   if (nestedCauseMessage) {
     return nestedCauseMessage;
