@@ -80,11 +80,12 @@ Goal: one trunk, green CI, an honest baseline.
 
 ### Phase 1: Real inventory (≈3–5 weeks)
 
-- [ ] Choose suppliers and get sandbox credentials: flights (aggregator) and hotels and cars (affiliate or API).
-- [ ] Build `flight` provider adapter #2 against the supplier sandbox: search, resolve inventory and price, using the existing adapter contract.
-- [ ] Map supplier IDs into the canonical inventory ID scheme. Add search caching with TTLs that respect the supplier's rate limits.
-- [ ] Hotels and cars: build handoff adapters (deep link + tracking) behind the standard adapter contract, and keep saving a snapshot to the trip. Prefer suppliers that also offer a transactional API, so Phase 6 is a mode switch rather than a supplier migration.
-- [ ] Use a feature flag or env setting to pick the provider (seeded vs. live) per vertical, so dev can stay on seed data.
+- [x] Choose a supplier: **Duffel** for flights, with Stays and Cars available on the same API ([ADR 0001](adr/0001-duffel-flight-inventory.md)).
+- [ ] Create a Duffel account and a test token; set `DUFFEL_ACCESS_TOKEN` and `ANDACITY_FLIGHT_PROVIDER=duffel` in `/opt/andacity/dev.env`. **(Owner action.)**
+- [x] Build the Duffel flight adapter (search, resolve, price) on the existing adapter contract, with fixture tests. Verify it against the sandbox once the token exists.
+- [x] Map supplier offers into the canonical inventory ID scheme (segment-derived flight key), with a 5-minute offer-request cache.
+- [ ] Hotels and cars: **decision pending** ([ADR 0001, open question](adr/0001-duffel-flight-inventory.md#open-question-hotels-and-cars-in-the-mvp)). Either Duffel Stays/Cars search now with booking at the beta, or affiliate hand-offs as originally planned.
+- [x] Env setting to pick the flight source (`ANDACITY_FLIGHT_PROVIDER=seed|duffel`); the seed stays the default. Hotels and cars follow once decided.
 - [ ] Label any inventory that is not live booking in the UI ("Book on partner site").
 
 **Exit:** a search on dev returns real sandbox offers, and adding one to a trip and revalidating it works.

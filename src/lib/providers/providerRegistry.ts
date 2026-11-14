@@ -30,6 +30,7 @@ export function listSearchProviders(
 ): ProviderAdapter[] {
   return listProviders().filter((provider) => {
     if (provider.vertical !== vertical) return false
+    if (provider.isEnabled && !provider.isEnabled()) return false
     if (options.includeAliases === true) return true
     return !provider.aliasOf
   })

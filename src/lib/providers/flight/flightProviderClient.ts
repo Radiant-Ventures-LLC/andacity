@@ -66,6 +66,11 @@ type FlightSegmentRow = {
 
 export type FlightProviderRawOffer = {
   itineraryId: number
+  /** Provider-derived canonical flight key; used instead of flightNumber in the inventory id. */
+  inventoryFlightKey?: string | null
+  /** Supplier offer id (opaque, may expire), for later booking. */
+  providerOfferId?: string | null
+  providerOfferExpiresAt?: string | null
   airlineName: string
   airlineCode: string | null
   itineraryType: FlightItineraryType

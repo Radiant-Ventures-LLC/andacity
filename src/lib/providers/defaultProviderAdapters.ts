@@ -4,6 +4,10 @@ import {
 } from '~/lib/providers/flight/flightProviderAdapter'
 import { FLIGHT_PROVIDER_REGISTRY_ALIAS } from '~/lib/providers/flight/constants'
 import {
+  duffelFlightProviderAdapter,
+  getConfiguredFlightInventorySource,
+} from '~/lib/providers/flight/duffel/duffelFlightProviderAdapter'
+import {
   hotelProviderAdapter,
 } from '~/lib/providers/hotel/hotelProviderAdapter'
 import { HOTEL_PROVIDER_REGISTRY_ALIAS } from '~/lib/providers/hotel/constants'
@@ -14,43 +18,64 @@ import { CAR_PROVIDER_REGISTRY_ALIAS } from '~/lib/providers/car/constants'
 
 const createProviderAliasAdapter = (
   provider: string,
-  adapter: ProviderAdapter,
+  target: ProviderAdapter | (() => ProviderAdapter),
+): ProviderAdapter => {
+  const pick = typeof target === 'function' ? target : () => target
+  const adapter = pick()
+  return createAliasFor(provider, adapter, pick)
+}
+
+const createAliasFor = (
+  provider: string,
+  initial: ProviderAdapter,
+  pick: () => ProviderAdapter,
 ): ProviderAdapter => ({
   provider,
-  vertical: adapter.vertical,
-  aliasOf: adapter.provider,
-  search: (params, options) => adapter.search(params, options),
-  resolveInventory: (inventoryId, options) => adapter.resolveInventory(inventoryId, options),
-  fetchPrice: (inventoryId, options) => adapter.fetchPrice(inventoryId, options),
-  ...(adapter.normalizeSearchResponse
+  vertical: initial.vertical,
+  get aliasOf() {
+    return pick().provider
+  },
+  search: (params, options) => pick().search(params, options),
+  resolveInventory: (inventoryId, options) => pick().resolveInventory(inventoryId, options),
+  fetchPrice: (inventoryId, options) => pick().fetchPrice(inventoryId, options),
+  ...(initial.normalizeSearchResponse
     ? {
         normalizeSearchResponse: (response, params) =>
-          adapter.normalizeSearchResponse?.(response, params) || [],
+          pick().normalizeSearchResponse?.(response, params) || [],
       }
     : {}),
-  ...(adapter.normalizeInventoryResponse
+  ...(initial.normalizeInventoryResponse
     ? {
         normalizeInventoryResponse: (response, inventoryId) =>
-          adapter.normalizeInventoryResponse?.(response, inventoryId) || null,
+          pick().normalizeInventoryResponse?.(response, inventoryId) || null,
       }
     : {}),
-  ...(adapter.normalizePriceResponse
+  ...(initial.normalizePriceResponse
     ? {
         normalizePriceResponse: (response, inventoryId) =>
-          adapter.normalizePriceResponse?.(response, inventoryId) || null,
+          pick().normalizePriceResponse?.(response, inventoryId) || null,
       }
     : {}),
-  ...(adapter.resolveInventoryRecord
+  ...(initial.resolveInventoryRecord
     ? {
         resolveInventoryRecord: (input, options) =>
-          adapter.resolveInventoryRecord?.(input, options) || Promise.resolve(null),
+          pick().resolveInventoryRecord?.(input, options) || Promise.resolve(null),
       }
     : {}),
 })
 
+// Seeded inventory stays the default; ANDACITY_FLIGHT_PROVIDER=duffel switches.
+const seedFlightProviderAdapter: ProviderAdapter = {
+  ...flightProviderAdapter,
+  isEnabled: () => getConfiguredFlightInventorySource() === 'seed',
+}
+
 export const flightVerticalAdapter = createProviderAliasAdapter(
   FLIGHT_PROVIDER_REGISTRY_ALIAS,
-  flightProviderAdapter,
+  () =>
+    getConfiguredFlightInventorySource() === 'duffel'
+      ? duffelFlightProviderAdapter
+      : seedFlightProviderAdapter,
 )
 
 export const hotelVerticalAdapter = createProviderAliasAdapter(
@@ -64,7 +89,8 @@ export const carVerticalAdapter = createProviderAliasAdapter(
 )
 
 export const DEFAULT_PROVIDER_ADAPTERS = [
-  flightProviderAdapter,
+  seedFlightProviderAdapter,
+  duffelFlightProviderAdapter,
   flightVerticalAdapter,
   hotelProviderAdapter,
   hotelVerticalAdapter,

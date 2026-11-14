@@ -72,6 +72,9 @@ services:
       CONTACT_EMAIL: ${CONTACT_EMAIL:-hello@andacity.com}
       PRIVACY_EMAIL: ${PRIVACY_EMAIL:-privacy@andacity.com}
       LEGAL_EMAIL: ${LEGAL_EMAIL:-legal@andacity.com}
+      # Flight inventory: seed (default) or duffel; token lives in /opt/andacity/dev.env.
+      ANDACITY_FLIGHT_PROVIDER: ${ANDACITY_FLIGHT_PROVIDER:-seed}
+      DUFFEL_ACCESS_TOKEN: ${DUFFEL_ACCESS_TOKEN:-}
 
   cloudflared:
     image: cloudflare/cloudflared:latest

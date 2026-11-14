@@ -98,9 +98,13 @@ const resolveWithRegisteredProvider = async (
   const parsedInventoryProvider = normalizeProviderName(
     readParsedInventoryProvider(input.parsedInventory),
   )
-  const provider = getProvider(
-    requestedProvider || parsedInventoryProvider || input.parsedInventory.vertical,
-  )
+  // Saved items often carry a display label (e.g. the airline) rather than a
+  // registered provider key; fall back to the vertical's active provider so
+  // they revalidate against the configured inventory source.
+  const provider =
+    (requestedProvider ? getProvider(requestedProvider) : null) ||
+    (parsedInventoryProvider ? getProvider(parsedInventoryProvider) : null) ||
+    getProvider(input.parsedInventory.vertical)
 
   if (!provider) {
     return {

@@ -23,6 +23,8 @@ export interface ProviderAdapter<
   provider: string
   vertical?: SearchVertical
   aliasOf?: string
+  /** When present and false, the provider is skipped for search and alias routing. */
+  isEnabled?(): boolean
   search(params: SearchParams, options?: ProviderRequestOptions): Promise<SearchEntity[]>
   resolveInventory(
     inventoryId: string,

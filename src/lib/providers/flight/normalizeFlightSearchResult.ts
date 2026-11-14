@@ -99,6 +99,7 @@ export const normalizeFlightSearchResult = (
         departDate: normalizedDepartDate,
         canonicalFlightNumber:
           toNullableText(options.canonicalFlightNumber) ??
+          toNullableText(offer.inventoryFlightKey) ??
           (flightNumber ? null : offer.itineraryId > 0 ? String(offer.itineraryId) : null),
         priceAmountCents: offer.priceAmountCents,
         snapshotTimestamp:
