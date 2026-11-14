@@ -1,3 +1,70 @@
+# Andacity v0.7.0 — Checkout, Booking & UI Redesign
+
+Release Date: 2026-11-14
+
+---
+
+## Overview
+
+v0.7.0 takes Andacity from **search and trip assembly** to a full **planning-to-booking loop**:
+
+**trip → checkout → revalidation → payment → booking → confirmation → itinerary → return access**
+
+It also ships the complete UI redesign, which touches every public surface.
+
+---
+
+## Added
+
+### Checkout & Payment
+- Trip → checkout transition with a pre-checkout revalidation gate
+- Checkout sessions and the payment integration layer (Stripe PaymentIntents)
+
+### Booking
+- Booking execution engine with booking runs and per-item execution
+- Provider booking adapters for flights, hotels and cars
+- Booking confirmation system and confirmation pages
+- Unified error handling and recovery across the booking lifecycle
+
+### Post-Booking
+- Saved itinerary pages with ownership-aware access
+- Anonymous itinerary ownership with claim tokens
+- My Trips dashboard
+- Post-booking retrieval and resume flow
+- Booking and confirmation notifications (Resend)
+
+### Travelers
+- Traveler details capture and validation
+- Saved traveler profiles, reusable at checkout
+
+### UI Redesign (CLAUDE-UI-001 → 051)
+- New UI system foundation and shared component tokens
+- Redesigned home, explore, destinations, search results, and the hotels, flights and car rental landing, city, index and detail pages, plus trips
+- Runtime theme switcher with light/dark consistency
+- Baseline palette and Ledger comparison surface
+
+### Platform
+- Fastify production server and Docker image
+- Analytics and error-monitoring integration
+- CI: lint, type check, tests and production build on every PR
+
+---
+
+## Fixed
+- API error responses no longer expose raw internal error messages outside development
+- Seed data: real airport time zones and UTC flight instants
+- Origin autofill no longer errors when the location is unavailable
+- Hero stacking, search overlay and results-page blockers
+
+---
+
+## Known Limitations
+- All inventory is seeded; no real supplier is connected yet
+- No account sign-in yet; trip access uses anonymous ownership
+- See `docs/ROADMAP.md` for the MVP plan (hybrid MVP → full booking at public beta)
+
+---
+
 # Andacity v0.6.0 — Search UX, Routing & Trip Assembly
 
 Release Date: 2026-03-17
