@@ -72,8 +72,8 @@ Goal: one trunk, green CI, an honest baseline.
 - [x] Finish the canonical search-route consolidation. The legacy `/search/*` and `/cars/search/*` routes were already thin redirects to canonical routes; the unreachable legacy search stack (old query modules, mappers, results/filter/compare components, ~4.4k lines) is deleted.
 - [ ] Dead-code pass on the rest of the files no route reaches (explore intent mappers, email components, small booking/ownership predicates). Decide whether each one is wired up later or deleted.
 - [x] Delete the stale `CLAUDE-UI-051-baseline-ledger.patch`.
-- [ ] Move the obsolete AWS launch-gate reports to `docs/archive/`.
-- [ ] Fix the `AGENTS.md` database guidance so it matches the current environment.
+- [x] Move the obsolete AWS launch-gate reports to `docs/archive/aws-public-beta/`.
+- [x] Fix the `AGENTS.md` database guidance so it matches the current environment, and point `package.json` repo URLs at `Radiant-Ventures-LLC/andacity`.
 - [ ] Prune merged or abandoned `feature/new-ui-ux--*` branches.
 
 **Exit:** `main` = v0.7.0, CI green, dev.andacity.com deployed from `main`.
