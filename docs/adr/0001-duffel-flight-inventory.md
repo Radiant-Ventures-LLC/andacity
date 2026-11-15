@@ -57,6 +57,15 @@ Decision 0 planned affiliate hand-offs for hotels and cars in the MVP, with full
 - **B. Affiliate hand-offs, as planned.** Users can complete hotel and car bookings in the MVP, on a partner site. It needs a second supplier relationship (e.g. Booking.com/Expedia affiliate programmes, DiscoverCars) whose code is replaced in Phase 6.
 - **C. Duffel booking for all three verticals in the MVP.** This is full booking early. Prepaid hotel and car sales bring the seller-of-travel and servicing obligations forward.
 
+### Sandbox findings (2026-11-14)
+
+Probed with the dev test token:
+
+- **Stays is not enabled on the account.** `POST /stays/search` returns 403 "This feature is not enabled for your account. Please contact sales". Hotels can't move to Duffel until Duffel enables Stays, which is a request to Duffel sales.
+- **Cars is enabled, but test mode has no real inventory.** Searches at real places (Heathrow, LAX) return 0 rates. The only test-mode supplier is "Duffel Test Drive", at a fictional location (lat -24.38, lon -128.32), with one rate per test scenario (successful prepaid/postpaid/guarantee booking, rate unavailable, payment declined, pending then failed, …). Rates carry no expiry. Prices are per rental in the supplier's currency (GBP in test).
+- **What that means for option A on dev:** the Cars adapter can be built and verified against Test Drive, but switching dev to Duffel cars would empty every real city's car results. Dev keeps seeded cars until live-mode access (or real test inventory) is available. Per ADR 0002, seeded hotels and cars are only retired once their supplier is verified on dev.
+- **To ask Duffel:** enable Stays, and confirm what live-mode access for Cars and Stays requires (contract, KYB, commission terms).
+
 ## Consequences
 
 - No live calls happen until a Duffel test token is configured (`duffel_test_…`, from the Duffel dashboard in Developer test mode).

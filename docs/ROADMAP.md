@@ -85,8 +85,8 @@ Goal: one trunk, green CI, an honest baseline.
 - [x] Build the Duffel flight adapter (search, resolve, price) on the existing adapter contract, with fixture tests, and verify it against the sandbox (one-way, connections, round trips).
 - [x] Persist supplier-sourced trip items (migration 0017) and revalidate them through the provider.
 - [x] Map supplier offers into the canonical inventory ID scheme (segment-derived flight key), with a 5-minute offer-request cache.
-- [ ] Hotels: Duffel Stays adapter (search, resolve, price), with booking disabled until Phase 6 ([ADR 0001](adr/0001-duffel-flight-inventory.md), option A).
-- [ ] Cars: Duffel Cars adapter (search, resolve, price), with booking disabled until Phase 6.
+- [ ] Hotels: Duffel Stays adapter (search, resolve, price), with booking disabled until Phase 6 ([ADR 0001](adr/0001-duffel-flight-inventory.md), option A). **Blocked:** Stays isn't enabled on the Duffel account (403); needs a request to Duffel sales.
+- [ ] Cars: Duffel Cars adapter (search, resolve, price), with booking disabled until Phase 6. Test mode only has the fictional "Duffel Test Drive" supplier, so the adapter is verified there and dev keeps seeded cars until live access ([ADR 0001](adr/0001-duffel-flight-inventory.md#sandbox-findings-2026-11-14)).
 - [x] Env setting to pick the flight source (`ANDACITY_FLIGHT_PROVIDER=seed|duffel`); the seed stays the default. Hotels and cars follow once decided.
 - [x] Retire synthetic inventory per vertical as suppliers replace it; production refuses seeded inventory ([ADR 0002](adr/0002-retire-synthetic-inventory.md)). Seeded flights deleted on dev 2026-11-14.
 - [ ] Retire seeded hotels, then cars, on dev once their Duffel adapters are verified (ADR 0002 procedure).
