@@ -717,8 +717,31 @@ const upsertFlightFares = async (client, rows, refs) => {
   }
 };
 
-const resetSeedTables = async (client, schema) => {
-  const tables = [...TABLE_INSERT_ORDER].reverse();
+// Tables holding each vertical's synthetic inventory. Geography (countries,
+// regions, cities, airports) is reference data and is always seeded.
+const VERTICAL_TABLES = {
+  flights: new Set(["airlines", "flight_routes", "flight_itineraries", "flight_segments", "flight_fares"]),
+};
+
+// Verticals served by a live supplier aren't seeded: synthetic rows would never
+// be read, and seeded and live inventory must not mix (docs/adr/0002).
+// Naming the vertical explicitly (`--vertical flights`) still seeds it.
+const resolveSupplierSkippedVerticals = (vertical, env = process.env) => {
+  if (vertical !== "all") return new Set();
+  const skipped = new Set();
+  if (String(env.ANDACITY_FLIGHT_PROVIDER || "").trim().toLowerCase() === "duffel") {
+    skipped.add("flights");
+  }
+  return skipped;
+};
+
+const includesVertical = (args, vertical) =>
+  (args.vertical === "all" || args.vertical === vertical) &&
+  !args.skippedVerticals?.has(vertical);
+
+const resetSeedTables = async (client, schema, skippedVerticals = new Set()) => {
+  const keep = new Set([...skippedVerticals].flatMap((v) => [...(VERTICAL_TABLES[v] || [])]));
+  const tables = [...TABLE_INSERT_ORDER].reverse().filter((table) => !keep.has(table));
   if (!tables.length) return;
 
   const tableList = tables.map((table) => schemaQualified(schema, table)).join(", ");
@@ -1030,7 +1053,7 @@ const flushFlightBatch = async (client, refs, batch) => {
 };
 
 const applyDenseFlights = async (client, refs, args, seedConfig) => {
-  if (!(args.vertical === "all" || args.vertical === "flights")) {
+  if (!includesVertical(args, "flights")) {
     return flightBatchSummary();
   }
 
@@ -1230,7 +1253,7 @@ const applyHybridSeed = async (args, seedConfig) => {
     await client.query("begin");
 
     if (args.reset) {
-      await resetSeedTables(client, schema);
+      await resetSeedTables(client, schema, args.skippedVerticals);
     }
 
     const geographyPayload = buildPostgresSeedPayload({
@@ -1308,7 +1331,7 @@ const applyHybridSeed = async (args, seedConfig) => {
     }
 
     const flightCounts = await applyDenseFlights(client, refs, args, seedConfig);
-    if (args.vertical === "all" || args.vertical === "flights") {
+    if (includesVertical(args, "flights")) {
       debugCounts.afterFlights = {
         flightRoutes: await readCount("flight_routes"),
         flightItineraries: await readCount("flight_itineraries"),
@@ -1470,6 +1493,11 @@ const run = async () => {
     return;
   }
 
+  args.skippedVerticals = resolveSupplierSkippedVerticals(args.vertical);
+  for (const vertical of args.skippedVerticals) {
+    console.log(`Skipping ${vertical}: served by a live supplier (see docs/adr/0002).`);
+  }
+
   const validation = assertSeedInventory({ seedConfig });
   const result = await applyHybridSeed(args, seedConfig);
 
@@ -1478,6 +1506,7 @@ const run = async () => {
       {
         applied: true,
         vertical: args.vertical,
+        skippedVerticals: [...args.skippedVerticals],
         seed: seedConfig.seed,
         horizonDays: seedConfig.horizonDays,
         horizonStartDate: seedConfig.horizonStartDate,

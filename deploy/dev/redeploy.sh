@@ -3,7 +3,7 @@
 #
 #   deploy/dev/redeploy.sh             # sync code, rebuild + restart the app
 #   deploy/dev/redeploy.sh --migrate   # ...and run pending DB migrations first
-#   deploy/dev/redeploy.sh --seed      # ...and migrate + reseed the 120-day horizon (slow, ~1h)
+#   deploy/dev/redeploy.sh --seed      # ...and migrate + reseed the 120-day horizon (hours with flights; flights are skipped while Duffel serves them)
 #
 # Env: DEPLOY_HOST (ssh alias, default andacity-dev), REMOTE_DIR (default /opt/andacity/src),
 #      ACCESS_TOKEN_FILE (default ~/.config/andacity/access-service-token) for the smoke check.
