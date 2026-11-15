@@ -25,6 +25,7 @@ const SERVER_RUNTIME_KEYS = [
   'ANDACITY_FLIGHT_PROVIDER',
   'DUFFEL_ACCESS_TOKEN',
   'DUFFEL_API_BASE',
+  'ANDACITY_ALLOW_SEED_INVENTORY',
 ] as const
 
 export type ServerRuntimeKey = (typeof SERVER_RUNTIME_KEYS)[number]

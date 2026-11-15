@@ -75,6 +75,9 @@ services:
       # Flight inventory: seed (default) or duffel; token lives in /opt/andacity/dev.env.
       ANDACITY_FLIGHT_PROVIDER: ${ANDACITY_FLIGHT_PROVIDER:-seed}
       DUFFEL_ACCESS_TOKEN: ${DUFFEL_ACCESS_TOKEN:-}
+      # Private demo: seeded hotels/cars may be served until their Duffel
+      # adapters land. Production must not set this (docs/adr/0002).
+      ANDACITY_ALLOW_SEED_INVENTORY: "true"
 
   cloudflared:
     image: cloudflare/cloudflared:latest
@@ -97,6 +100,8 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: *db-url
+      # The seed skips verticals served by a supplier (docs/adr/0002).
+      ANDACITY_FLIGHT_PROVIDER: ${ANDACITY_FLIGHT_PROVIDER:-seed}
     # Long seeds: run detached with `run -d` and follow with `docker logs -f`.
 
 volumes:

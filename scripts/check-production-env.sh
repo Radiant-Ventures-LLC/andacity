@@ -67,6 +67,24 @@ optional_var PUBLIC_GA_MEASUREMENT_ID
 optional_var PUBLIC_SENTRY_DSN
 
 echo ""
+echo "--- Inventory (no synthetic inventory in production; docs/adr/0002) ---"
+if [[ "${ANDACITY_ALLOW_SEED_INVENTORY:-}" =~ ^(1|true|yes)$ ]]; then
+  echo "  INVALID  ANDACITY_ALLOW_SEED_INVENTORY must not be enabled in production"
+  FAIL=$((FAIL + 1))
+else
+  echo "  OK       ANDACITY_ALLOW_SEED_INVENTORY not enabled"
+  PASS=$((PASS + 1))
+fi
+if [[ "${ANDACITY_FLIGHT_PROVIDER:-}" == "duffel" ]]; then
+  echo "  OK       ANDACITY_FLIGHT_PROVIDER = duffel"
+  PASS=$((PASS + 1))
+else
+  echo "  INVALID  ANDACITY_FLIGHT_PROVIDER must be duffel (seeded flights are refused)"
+  FAIL=$((FAIL + 1))
+fi
+check_var DUFFEL_ACCESS_TOKEN true
+
+echo ""
 echo "--- Validation summary ---"
 echo "  Passed: $PASS"
 echo "  Failed: $FAIL"
