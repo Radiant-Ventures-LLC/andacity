@@ -88,6 +88,9 @@ Goal: one trunk, green CI, an honest baseline.
 - [ ] Hotels: Duffel Stays adapter (search, resolve, price), with booking disabled until Phase 6 ([ADR 0001](adr/0001-duffel-flight-inventory.md), option A).
 - [ ] Cars: Duffel Cars adapter (search, resolve, price), with booking disabled until Phase 6.
 - [x] Env setting to pick the flight source (`ANDACITY_FLIGHT_PROVIDER=seed|duffel`); the seed stays the default. Hotels and cars follow once decided.
+- [x] Retire synthetic inventory per vertical as suppliers replace it; production refuses seeded inventory ([ADR 0002](adr/0002-retire-synthetic-inventory.md)). Seeded flights deleted on dev 2026-11-14.
+- [ ] Retire seeded hotels, then cars, on dev once their Duffel adapters are verified (ADR 0002 procedure).
+- [ ] Rebuild trip bundling suggestions on the active provider; flight suggestions read the retired seed tables.
 - [ ] Label hotel and car items as "booking opens at beta" in the UI, and keep checkout from offering them.
 - [ ] Hide or explain "Continue to checkout" for trips whose items can't be booked yet (Duffel flight booking arrives in Phase 2).
 - [ ] Show local time zones on trip item times (trip cards print bare times).
@@ -118,7 +121,8 @@ Goal: one trunk, green CI, an honest baseline.
 
 - [ ] Replace the AWS-era root `Dockerfile` (yarn, no lockfile) with a pnpm production image based on `deploy/dev/Dockerfile`.
 - [ ] Production environment for andacity.com: a managed or backed-up Postgres with point-in-time recovery, secrets management, and deploys from `main`.
-- [ ] A small production data footprint: a real supplier only needs reference data (airports, cities, locations), not the 40M-row seed.
+- [ ] A small production data footprint: reference data only (countries, regions, cities, airports), no synthetic inventory ([ADR 0002](adr/0002-retire-synthetic-inventory.md)).
+- [ ] Make reseeding safe for user data: `--reset` uses `TRUNCATE … CASCADE`, which wipes `trip_items` and everything under it.
 - [ ] Error monitoring and alerting (the UI-033 integration exists; point it at production), plus uptime checks.
 - [ ] Rate limiting, plus Turnstile on search bursts and checkout.
 - [ ] Performance budget (Core Web Vitals) on home, search results and checkout.
